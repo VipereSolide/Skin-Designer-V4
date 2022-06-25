@@ -129,7 +129,6 @@ namespace SkinDesigner.Project
                     {
                         if (!_line.Contains("[") && !_line.Contains("]"))
                         {
-                            Debug.Log("Mediaa");
                             string mediaPath = _line.RemoveStartSpace().ReplaceAll(new string[]{"\"",","}, "");
                             ProjectWindowManager.Instance.AddMedia(mediaPath);
                         }

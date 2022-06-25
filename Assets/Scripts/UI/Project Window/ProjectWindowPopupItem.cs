@@ -158,7 +158,7 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
 
     private void Execute()
     {
-        onClick.Invoke();
+        onClick?.Invoke();
 
         if (disableOnClick)
         {
@@ -174,7 +174,7 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
 
     private void ExecuteOnSelected()
     {
-        onClickSelected.Invoke(ProjectWindowManager.Instance.Selected);
+        onClickSelected?.Invoke(ProjectWindowManager.Instance.Selected);
 
         if (disableOnClick)
         {
@@ -223,6 +223,11 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
     {
         if (data.button != PointerEventData.InputButton.Left)
             return;
+
+        if (ProjectWindowManager.Instance.Selected != null)
+        {
+            ExecuteOnSelected();
+        }
 
         Execute();
     }

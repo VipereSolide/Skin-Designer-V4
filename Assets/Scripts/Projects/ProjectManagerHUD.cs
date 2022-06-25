@@ -64,7 +64,7 @@ namespace SkinDesigner.Project
                 weapon.CorrespondingObject.SetTextures(weapon.MainTextures);
 
                 ProjectWindowManager.Instance.CreateWeapon(weapon.Weapon);
-                 Inspector.InspectorManager.Instance.SetInspectedWeapon(weapon.Weapon);
+                Inspector.InspectorManager.Instance.SetInspectedWeapon(weapon.Weapon);
             }
 
             string[] medias = ProjectManager.GetProjectMediasFromString(info.ProjectStringData);
@@ -103,7 +103,7 @@ namespace SkinDesigner.Project
                 string media = medias[i].RemoveControlCharacters();
 
                 string mediaName = Path.GetFileNameWithoutExtension(media);
-                ProjectWindowManager.Instance.CreateMedia(mediaName, media);
+                ProjectWindowContentItem item = ProjectWindowManager.Instance.CreateMedia(mediaName, media);
             }
         }
 

@@ -16,12 +16,12 @@ namespace SkinDesigner.Scene
         [SerializeField]
         private float panningSpeed;
 
+        private bool isRotationEnabled = false;
+        private bool isPanningEnabled = false;
+
         private void Update()
         {
-            if (EventSystem.current.IsPointerOverGameObject())
-                return;
-
-            if (Input.GetKey(KeyCode.Mouse1))
+            if (isRotationEnabled)
             {
                 float x = Input.GetAxisRaw("Mouse X");
                 float y = -Input.GetAxisRaw("Mouse Y");
@@ -30,13 +30,36 @@ namespace SkinDesigner.Scene
                 transform.localEulerAngles += rotation;
             }
 
-            if (Input.GetKey(KeyCode.Tab))
+            if (isPanningEnabled)
             {
                 float x = Input.GetAxis("Mouse X");
                 float y = Input.GetAxis("Mouse Y");
 
                 Vector3 position = new Vector3(x, y, 0) * -1f * panningSpeed * Time.deltaTime;
                 camera.transform.Translate(position, Space.Self);
+            }
+
+            if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                isRotationEnabled = false;
+            }
+
+            if (Input.GetKeyUp(KeyCode.Tab))
+            {
+                isPanningEnabled = false;
+            }
+
+            if (EventSystem.current.IsPointerOverGameObject())
+                return;
+
+            if (Input.GetKeyDown(KeyCode.Mouse1))
+            {
+                isRotationEnabled = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                isPanningEnabled = true;
             }
         }
     }

@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 
 public class ProjectWindowContentFolder : ProjectWindowContentItem, IPointerClickHandler
 {
+    [Header("Folder Settings")]
     [SerializeField] private List<ProjectWindowContentItem> children = new List<ProjectWindowContentItem>();
     [SerializeField] private string m_path = string.Empty;
 

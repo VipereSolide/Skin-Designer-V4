@@ -28,7 +28,7 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     [SerializeField] protected string m_name;
     [SerializeField] protected string m_childrenPath = string.Empty;
 
-    protected TextureObject heldTexture = null;
+    protected TextureObject heldTexture = new TextureObject();
 
     protected Vector2 m_lastMousePosition;
     protected bool m_canBeDropped = true;

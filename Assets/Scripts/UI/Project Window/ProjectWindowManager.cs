@@ -23,6 +23,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     [SerializeField] private ProjectWindowPopup windowPopupManager;
     [SerializeField] private Transform projectWindowItemContainer;
     [SerializeField] private ProjectWindowContentItem projectWindowItemPrefab;
+    [SerializeField] private ProjectWindowContentWeapon projectWindowWeaponPrefab;
     [SerializeField] private ProjectWindowContentFolder projectWindowFolderPrefab;
     [SerializeField] private Sprite[] weaponsSprite;
 
@@ -106,9 +107,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     {
         int weaponIndex = SkinDesigner.SkinSystem.Environment.WeaponToInt(weapon);
 
-        CreateMedia(weapon.ToString(), weaponsSprite[weaponIndex], () => {
-            InspectorManager.Instance.SetInspectedWeapon(weapon);
-        });
+        CreateWeapon(weaponIndex);
     }
 
     public void CreateWeapon(int weapon)
@@ -118,9 +117,17 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         SkinDesigner.SkinSystem.Weapon weaponType = SkinDesigner.SkinSystem.Environment.IntToWeapon(weapon);
 
-        CreateMedia(weaponName, weaponTexture, () => {
+        ProjectWindowContentWeapon instantiated = Instantiate(projectWindowWeaponPrefab, projectWindowItemContainer);
+        instantiated.SetData(weaponName, weaponTexture);
+        instantiated.SetDirectory(currentPath);
+
+        instantiated.onClick = () => {
             InspectorManager.Instance.SetInspectedWeapon(weaponType);
-        });
+        };
+
+        instantiated.Weapon = weaponType;
+
+        items.Add(instantiated);
     }
 
     public void CreateFolder(TMP_InputField folderName)
@@ -197,16 +204,18 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         items.Add(instantiated);
     }
 
-    public void CreateMedia(string name, string texture)
+    public ProjectWindowContentItem CreateMedia(string name, string texture)
     {
         ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
-        instantiated.SetData(name, TextureHelper.ToSprite(new Texture2D(2, 2)));
+        instantiated.SetData(name, TextureHelper.ToSprite(new Texture2D(2, 2)), texture);
         instantiated.SetDirectory(currentPath);
 
         mediaTextureQueue.Add(new ContentItemTextureQueueItem(texture, instantiated));
         items.Add(instantiated);
 
         DisplayContentItemTextures();
+
+        return instantiated;
     }
 
     public void UpdatePath(string _NewPath)
@@ -345,8 +354,6 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public IEnumerator DisplayContentItemTexturesCoroutine()
     {
-        Debug.Log("starting...");
-
         while (mediaTextureQueue.Count != 0)
         {
             ContentItemTextureQueueItem i = mediaTextureQueue.Last<ContentItemTextureQueueItem>();
@@ -396,7 +403,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public void RenameSelectedItem(TMP_InputField name)
     {
-        selected.SetData(name.text, selected.Background);
+        if (selected != null) selected.SetData(name.text, selected.Background);
     }
 
     public void SetMidAction(bool value)
@@ -494,9 +501,9 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
                 textureHolder _textureHolder = result.gameObject.GetComponent<textureHolder>();
 
-                if (_textureHolder != null)
+                if (_textureHolder != null && dragging.GetType() != typeof(ProjectWindowContentWeapon))
                 {
-                Debug.Log(result.gameObject.transform.name, result.gameObject);
+                    Debug.Log(result.gameObject.transform.name, result.gameObject);
                     
                     string textureName = _textureHolder.transform.parent.parent.name;
                     TextureMap textureMap = (TextureMap)System.Enum.Parse(typeof(TextureMap), textureName);

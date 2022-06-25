@@ -43,6 +43,8 @@ public class ProjectWindowPopup : MonoBehaviour, IPointerDownHandler
 
     public void OpenPopup(int i, ProjectWindowContentItem caller)
     {
+        ProjectWindowManager.Instance.SetMidAction(true);
+        
         cachedItem = caller;
 
         CanvasGroupHelper.SetActive(projectPopupCG, false);
@@ -71,8 +73,9 @@ public class ProjectWindowPopup : MonoBehaviour, IPointerDownHandler
 
     public void SetActive(bool value)
     {
-        CanvasGroupHelper.SetActive(projectPopupCG, false);
-        CanvasGroupHelper.SetActive(projectItemPopupCG, false);
+
+        CanvasGroupHelper.SetActive(projectPopupCG, value);
+        CanvasGroupHelper.SetActive(projectItemPopupCG, value);
     }
 
     public void SpecialFunction_DeleteItem()
