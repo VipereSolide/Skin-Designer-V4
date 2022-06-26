@@ -181,69 +181,69 @@ namespace SkinDesigner.Project
     {
 
         [SerializeField]
-        private int albedo;
+        private string albedo;
 
         [SerializeField]
-        private int detail;
+        private string detail;
 
         [SerializeField]
-        private int emission;
+        private string emission;
 
         [SerializeField]
-        private int height;
+        private string height;
 
         [SerializeField]
-        private int metallic;
+        private string metallic;
 
         [SerializeField]
-        private int normal;
+        private string normal;
 
         [SerializeField]
-        private int occlusion;
+        private string occlusion;
 
-        public int Albedo
+        public string Albedo
         {
             get { return albedo; }
             set { albedo = value; }
         }
         
-        public int Detail
+        public string Detail
         {
             get { return detail; }
             set { detail = value; }
         }
         
-        public int Emission
+        public string Emission
         {
             get { return emission; }
             set { emission = value; }
         }
         
-        public int Height
+        public string Height
         {
             get { return height; }
             set { height = value; }
         }
         
-        public int Metallic
+        public string Metallic
         {
             get { return metallic; }
             set { metallic = value; }
         }
         
-        public int Normal
+        public string Normal
         {
             get { return normal; }
             set { normal = value; }
         }
         
-        public int Occlusion
+        public string Occlusion
         {
             get { return occlusion; }
             set { occlusion = value; }
         }
 
-        public WeaponTextures(int _albedo, int _detail, int _emission, int _height, int _metallic, int _normal, int _occlusion)
+        public WeaponTextures(string _albedo, string _detail, string _emission, string _height, string _metallic, string _normal, string _occlusion)
         {
             this.albedo = _albedo;
             this.detail = _detail;
