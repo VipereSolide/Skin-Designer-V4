@@ -104,14 +104,14 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         UpdatePath(_Folder.Path);
     }
 
-    public void CreateWeapon(SkinDesigner.SkinSystem.Weapon weapon)
+    public ProjectWindowContentWeapon CreateWeapon(SkinDesigner.SkinSystem.Weapon weapon)
     {
         int weaponIndex = SkinDesigner.SkinSystem.Environment.WeaponToInt(weapon);
 
-        CreateWeapon(weaponIndex);
+        return CreateWeapon(weaponIndex);
     }
 
-    public void CreateWeapon(int weapon)
+    public ProjectWindowContentWeapon CreateWeapon(int weapon, string path)
     {
         string weaponName = SkinDesigner.SkinSystem.Environment.IntToWeapon(weapon).ToString();
         Sprite weaponTexture = weaponsSprite[weapon];
@@ -120,7 +120,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         ProjectWindowContentWeapon instantiated = Instantiate(projectWindowWeaponPrefab, projectWindowItemContainer);
         instantiated.SetData(weaponName, weaponTexture);
-        instantiated.SetDirectory(currentPath);
+        instantiated.SetDirectory(path);
 
         instantiated.onClick = () =>
         {
@@ -130,25 +130,20 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         instantiated.Weapon = weaponType;
 
         items.Add(instantiated);
+        return instantiated;
+    }
+
+    public ProjectWindowContentWeapon CreateWeapon(int weapon)
+    {
+        return this.CreateWeapon(weapon, currentPath);
     }
 
     public void CreateFolder(TMP_InputField folderName)
     {
-        ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
-        instantiated.SetName(folderName.text);
-        instantiated.SetChildrenPath(currentPath);
-        instantiated.SetPath(currentPath + "/" + folderName.text);
-
-        ProjectWindowContentFolder returnInstantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
-        returnInstantiated.SetName("..");
-        returnInstantiated.SetChildrenPath(currentPath + "/" + folderName.text);
-        returnInstantiated.SetPath(currentPath);
-        instantiated.AddChild(returnInstantiated);
-
-        UpdatePath(currentPath);
+        this.CreateFolder(folderName.text);
     }
 
-    public void CreateFolder(string folderName)
+    public ProjectWindowContentFolder CreateFolder(string folderName)
     {
         ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
         instantiated.SetName(folderName);
@@ -162,6 +157,32 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         instantiated.AddChild(returnInstantiated);
 
         UpdatePath(currentPath);
+        
+        items.Add(returnInstantiated);
+        items.Add(instantiated);
+
+        return instantiated;
+    }
+
+    public ProjectWindowContentFolder CreateFolder(string folderName, string _childrenPath, string _currentPath)
+    {
+        ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
+        instantiated.SetName(folderName);
+        instantiated.SetChildrenPath(_childrenPath);
+        instantiated.SetPath(_currentPath + "/" + folderName);
+
+        ProjectWindowContentFolder returnInstantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
+        returnInstantiated.SetName("..");
+        returnInstantiated.SetChildrenPath(_childrenPath + "/" + folderName);
+        returnInstantiated.SetPath(_currentPath);
+        instantiated.AddChild(returnInstantiated);
+
+        UpdatePath(_currentPath);
+        
+        items.Add(returnInstantiated);
+        items.Add(instantiated);
+
+        return instantiated;
     }
 
     public void ImportMedia()
@@ -212,7 +233,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     public ProjectWindowContentItem CreateMedia(string name, string texture)
     {
         ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
-        instantiated.SetData(name, TextureHelper.ToSprite(new Texture2D(2, 2)), texture);
+        instantiated.SetData(name, TextureHelper.ToSprite(Texture2D.blackTexture), texture);
         instantiated.SetDirectory(currentPath);
 
         mediaTextureQueue.Add(new ContentItemTextureQueueItem(texture, instantiated));

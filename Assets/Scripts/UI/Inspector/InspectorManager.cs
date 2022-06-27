@@ -87,8 +87,12 @@ namespace SkinDesigner.Inspector
 
             Texture2D texture = new Texture2D(2, 2);
             texture = (Texture2D)material.GetTexture(Environment.GetTextureMapRealName(textureMap));
-            texture = TextureHelper.Scaled(texture, 64, 64);
-            texture.Apply();
+
+            if (texture != null)
+            {
+                texture = TextureHelper.Scaled(texture, 64, 64);
+                texture.Apply();
+            }
 
             holders[index].SetHeldTexture(texture);
         }

@@ -129,6 +129,9 @@ namespace SkinDesigner.Project
         [SerializeField]
         private string media_path;
 
+        [SerializeField]
+        private int media_weapon;
+
         public int MediaID
         {
             get { return media_id; }
@@ -165,6 +168,12 @@ namespace SkinDesigner.Project
             set { media_path = value; }
         }
 
+        public int MediaWeapon
+        {
+            get { return media_weapon; }
+            set { media_weapon = value; }
+        }
+
         public ProjectMedia(int mediaID, string mediaName, string mediaType, string mediaSystemPath, string mediaChildrenPath, string mediaPath)
         {
             this.media_id = mediaID;
@@ -173,6 +182,17 @@ namespace SkinDesigner.Project
             this.media_system_path = mediaSystemPath;
             this.media_children_path = mediaChildrenPath;
             this.media_path = mediaPath;
+        }
+
+        public ProjectMedia(int mediaID, string mediaName, string mediaType, string mediaSystemPath, string mediaChildrenPath, string mediaPath, int mediaWeapon)
+        {
+            this.media_id = mediaID;
+            this.media_name = mediaName;
+            this.media_type = mediaType;
+            this.media_system_path = mediaSystemPath;
+            this.media_children_path = mediaChildrenPath;
+            this.media_path = mediaPath;
+            this.media_weapon = mediaWeapon;
         }
     }
 
