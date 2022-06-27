@@ -6,20 +6,33 @@ using UnityEngine.UI;
 using UnityEngine;
 
 using FeatherLight.Pro;
+using TMPro;
 
 public class ProjectWindowPopup : MonoBehaviour, IPointerDownHandler
 {
+    public static ProjectWindowPopup Instance;
+
     [SerializeField] private RectTransform projectPopup;
     [SerializeField] private RectTransform projectItemPopup;
+    [SerializeField] private TMP_InputField[] inputFields;
 
     private CanvasGroup projectPopupCG;
     private CanvasGroup projectItemPopupCG;
-
     private bool isPopupHighlighted = false;
     private ProjectWindowContentItem cachedItem;
+    PointerEventData pointerEventData;
+    private bool canUseShortcuts = true;
+
+    public bool CanUseShortcuts
+    {
+        get { return canUseShortcuts; }
+        set { canUseShortcuts = value; }
+    }
 
     private void Awake()
     {
+        Instance = this;
+
         projectPopupCG = projectPopup.GetComponent<CanvasGroup>();
         projectItemPopupCG = projectItemPopup.GetComponent<CanvasGroup>();
     }
@@ -29,7 +42,6 @@ public class ProjectWindowPopup : MonoBehaviour, IPointerDownHandler
         isPopupHighlighted = value;
     }
 
-    PointerEventData pointerEventData;
     public void OnPointerDown(PointerEventData data)
     {
         if (!isPopupHighlighted)
@@ -83,6 +95,16 @@ public class ProjectWindowPopup : MonoBehaviour, IPointerDownHandler
         if (cachedItem != null)
         {
             ProjectWindowManager.Instance.DestroyItem(cachedItem);
+        }
+    }
+
+    private void Update()
+    {
+        canUseShortcuts = true;
+
+        foreach(TMP_InputField field in inputFields)
+        {
+            if (field.isFocused) canUseShortcuts = false;
         }
     }
 }

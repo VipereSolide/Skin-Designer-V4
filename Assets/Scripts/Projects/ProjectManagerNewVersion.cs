@@ -12,6 +12,7 @@ namespace SkinDesigner.Project
 {
     public class ProjectManagerNewVersion : MonoBehaviour
     {
+        [SerializeField] private Project2 outputProject;
         [SerializeField] private TMP_Text testText;
 
         [Space()]
@@ -20,6 +21,8 @@ namespace SkinDesigner.Project
         [SerializeField] private TMP_Text projectNameText;
 
         private int mediaIdCounter;
+        
+        [SerializeField] private string projectPath;
 
         public void Update()
         {
@@ -27,10 +30,17 @@ namespace SkinDesigner.Project
             {
                 SaveProject();
             }
+
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                outputProject = GetProject(System.IO.File.ReadAllText(projectPath));
+            }
         }
 
         public void SaveProject()
         {
+            mediaIdCounter = 0;
+
             string project_name = projectNameText.text;
             List<ProjectWindowContentItem> items = manager.Items.ToList();
             List<ProjectWindowContentWeapon> projectWeaponsItems = new List<ProjectWindowContentWeapon>();
@@ -63,7 +73,12 @@ namespace SkinDesigner.Project
             project.ProjectName = project_name;
             project.WeaponData = projectWeapons.ToArray();
             string json = JsonUtility.ToJson(project);
-            Debug.Log("**JSON OUTPUT**" + "\n" + json);
+            Debug.Log(json);
+        }
+
+        public Project2 GetProject(string json)
+        {
+            return (Project2)JsonUtility.FromJson<Project2>(json);
         }
 
         public ProjectMedia FindItemInMedias(ProjectWindowContentItem item, ProjectMedia[] medias)

@@ -120,6 +120,9 @@ namespace SkinDesigner.Project
 
             foreach (string file in _filesInDir)
             {
+                if (Path.GetExtension(file) != "json" && file == "C:\\Users\\comma\\Documents\\Skillwarz\\Skin Designer\\Projects\\AK47 Cherry Bloodsome.json")
+                    continue;
+
                 ProjectReaderInfo info = ProjectManager.GetProjectFromString(File.ReadAllText(file));
 
                 ProjectManagerItem instantiated = Instantiate(m_itemPrefab, m_verticalProjectsList.transform);

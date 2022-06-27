@@ -11,6 +11,7 @@ using UnityEngine;
 using SkinDesigner.SkinSystem;
 using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
+using SkinDesigner.Weapon;
 using FeatherLight.Pro;
 using SkinDesigner;
 using TMPro;
@@ -121,7 +122,8 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         instantiated.SetData(weaponName, weaponTexture);
         instantiated.SetDirectory(currentPath);
 
-        instantiated.onClick = () => {
+        instantiated.onClick = () =>
+        {
             InspectorManager.Instance.SetInspectedWeapon(weaponType);
         };
 
@@ -164,16 +166,19 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public void ImportMedia()
     {
-        string[] selectedFile = StandaloneFileBrowser.OpenFilePanel("Select a media...", FileSystem.LastPath, "png", false);
+        string[] selectedFiles = StandaloneFileBrowser.OpenFilePanel("Select a media...", FileSystem.LastPath, "png", true);
 
-        if (selectedFile.Length <= 0)
+        if (selectedFiles.Length <= 0)
         {
             return;
         }
 
-        FileSystem.LastPath = selectedFile[0];
+        foreach (string path in selectedFiles)
+        {
+            FileSystem.LastPath = path;
 
-        CreateMedia(Path.GetFileNameWithoutExtension(selectedFile[0]), selectedFile[0]);
+            CreateMedia(Path.GetFileNameWithoutExtension(path), path);
+        }
     }
 
     public void CreateMedia(string name, Texture texture)
@@ -327,24 +332,39 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             }
         }
 
+        WeaponManager manager = WeaponManager.Instance;
+
+        for(int i = 0; i < manager.CurrentTextures.Length; i++)
+        {
+            TextureObject held = item.HeldTexture;
+            TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(i);
+
+            Debug.Log(map);
+
+            if (held.TexturePath != string.Empty && !string.IsNullOrWhiteSpace(held.TexturePath))
+            {
+                Debug.Log("has a texture.");
+                if (manager.CurrentTextures[i].TexturePath == held.TexturePath || manager.CurrentTextures[i].Texture == held.Texture)
+                {
+                    Debug.Log("the texture objects correspond.");
+                    manager.RemoveTexture(map);
+                }
+            }
+            else
+            {
+            }
+        }
+
         Destroy(item.gameObject);
         items.Remove(item);
     }
 
     public void DestroySelectedItem()
     {
-        if (selected.GetType() == typeof(ProjectWindowContentFolder))
+        if (selected != null)
         {
-            ProjectWindowContentFolder folder = (ProjectWindowContentFolder)(selected as ProjectWindowContentFolder);
-
-            foreach (ProjectWindowContentItem i in folder.Children)
-            {
-                DestroyItem(i);
-            }
+            DestroyItem(selected);
         }
-
-        Destroy(selected.gameObject);
-        items.Remove(selected);
     }
 
     public void DisplayContentItemTextures()
@@ -503,8 +523,6 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
                 if (_textureHolder != null && dragging.GetType() != typeof(ProjectWindowContentWeapon))
                 {
-                    Debug.Log(result.gameObject.transform.name, result.gameObject);
-                    
                     string textureName = _textureHolder.transform.parent.parent.name;
                     TextureMap textureMap = (TextureMap)System.Enum.Parse(typeof(TextureMap), textureName);
 

@@ -67,9 +67,12 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
     private bool highlighted = false;
 
     private RectTransform subWindowRectTransform;
+    private ProjectWindowPopup popupParent;
 
     private void Start()
     {
+        popupParent = ProjectWindowPopup.Instance;
+
         if (subWindow != null)
             subWindowRectTransform = subWindow.GetComponent<RectTransform>();
 
@@ -137,7 +140,7 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
             }
         }
 
-        if (hasShortcut)
+        if (hasShortcut && popupParent.CanUseShortcuts)
         {
             if (applyShortcutOnSelected)
             {

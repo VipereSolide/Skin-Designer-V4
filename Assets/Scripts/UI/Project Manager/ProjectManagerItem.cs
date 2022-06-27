@@ -69,7 +69,10 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         if (info.Weapons.Count > 0)
         {
-            if (info.Weapons[0].MainTextures[0].TexturePath == "NULL")
+            string texturePath = info.Weapons[0].MainTextures[0].TexturePath;
+            bool isPathNull = (string.IsNullOrEmpty(texturePath) || string.IsNullOrWhiteSpace(texturePath));
+
+            if (texturePath == "NULL" || isPathNull)
             {
                 Texture2D backgroundTexture = new Texture2D(1, 1);
                 backgroundTexture.SetPixel(0, 0, Color.black);
@@ -78,11 +81,17 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
             else
             {
-                Texture2D backgroundTexture = (Texture2D)info.Weapons[0].MainTextures[0].GetTextureFromPath();
-                byte[] backgroundTextureBytes = File.ReadAllBytes(info.Weapons[0].MainTextures[0].TexturePath);
-                backgroundTexture.LoadImage(backgroundTextureBytes);
-                backgroundTexture.Apply();
-                m_background = backgroundTexture.ToSprite();
+                Texture2D backgroundTexture = (Texture2D)info.Weapons[0].MainTextures[0].Texture;
+
+                /* if (backgroundTexture == null)
+                {
+                    byte[] backgroundTextureBytes = File.ReadAllBytes(texturePath);
+                    backgroundTexture.LoadImage(backgroundTextureBytes);
+                    backgroundTexture.Apply();
+                    m_background = backgroundTexture.ToSprite();
+                } */
+
+                backgroundTexture = new Texture2D(2,2);
             }
         }
         else

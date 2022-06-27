@@ -3,10 +3,11 @@ using System.Collections;
 
 using UnityEngine;
 
+using SkinDesigner.SelectTexturesWindow;
 using SkinDesigner.SkinSystem;
+using SkinDesigner.Textures;
 using SkinDesigner.Weapon;
 using FeatherLight.Pro;
-using SkinDesigner;
 
 namespace SkinDesigner.Inspector
 {
@@ -15,16 +16,30 @@ namespace SkinDesigner.Inspector
         public static InspectorManager Instance;
 
         [SerializeField]
+        private TexturesWindowManager selectTexturesWindow;
+
+        [SerializeField]
         private textureHolder[] holders;
 
         [SerializeField]
         private colorPickerObject[] colorPickers;
 
         private WeaponObject currentObject;
+        private int waitingHolder;
 
         private void Awake()
         {
             Instance = this;
+        }
+
+        private void Start()
+        {
+            selectTexturesWindow.onItemSelected.AddListener(SetTextureByMediaItem);
+        }
+
+        private void OnApplicationQuit()
+        {
+            selectTexturesWindow.onItemSelected.RemoveListener(SetTextureByMediaItem);
         }
 
         public void SetInspectedWeapon(SkinSystem.Weapon weapon)
@@ -37,22 +52,25 @@ namespace SkinDesigner.Inspector
             UpdateAllTextureHolders();
         }
 
-        public void ResetTextureHolder(TextureMap textureMap)
+        public virtual void ResetTextureHolder(TextureMap textureMap)
         {
 
         }
 
-        public void ResetAllTextureHolders()
-        {
-            
-        }
-
-        public void SetTextureHolder(TextureMap textureMap, Texture texture)
+        public virtual void ResetAllTextureHolders()
         {
 
         }
 
-        public void SetAllTextureHolders(Texture texture) {}
+        public virtual void SetTextureHolder(TextureMap textureMap, Texture texture)
+        {
+
+        }
+
+        public virtual void SetAllTextureHolders(Texture texture)
+        {
+
+        }
 
         public void UpdateTextureHolder(TextureMap textureMap)
         {
@@ -67,7 +85,7 @@ namespace SkinDesigner.Inspector
 
             int index = Environment.TextureMapToInt(textureMap);
 
-            Texture2D texture = new Texture2D(2,2);
+            Texture2D texture = new Texture2D(2, 2);
             texture = (Texture2D)material.GetTexture(Environment.GetTextureMapRealName(textureMap));
             texture = TextureHelper.Scaled(texture, 64, 64);
             texture.Apply();
@@ -83,12 +101,39 @@ namespace SkinDesigner.Inspector
                 return;
             }
 
-            for(int i = 0; i < 7; i++)
+            for (int i = 0; i < 7; i++)
             {
                 TextureMap map = Environment.IntToTextureMap(i);
                 UpdateTextureHolder(map);
             }
         }
-        
+
+        public void SetTextureViaTextureWindow(int holderIndex)
+        {
+            waitingHolder = holderIndex;
+
+            selectTexturesWindow.Call(holders[holderIndex]);
+        }
+
+        [HideInInspector]
+        public void SetTextureByMediaItem()
+        {
+            TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(waitingHolder);
+            Texture texture = selectTexturesWindow.Texture;
+            WeaponManager manager = WeaponManager.Instance;
+
+            if (texture == null)
+            {
+                manager.RemoveTexture(map);
+            }
+            else
+            {
+                manager.SetTexture(map, new TextureObject(selectTexturesWindow.Texture));
+            }
+
+            UpdateTextureHolder(map);
+
+            waitingHolder = 0;
+        }
     }
 }

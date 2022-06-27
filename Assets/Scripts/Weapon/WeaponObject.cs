@@ -31,6 +31,8 @@ namespace SkinDesigner.Weapon
 
         private MeshRenderer m_renderer;
 
+        private bool hasSetStartTextures = false;
+
         public MeshRenderer Renderer
         {
             get
@@ -94,16 +96,18 @@ namespace SkinDesigner.Weapon
 
         public void Start()
         {
-            m_startTextures = Environment.GetMaterialTextures(m_renderer.material);
-
-            if (m_hasMultipleParts)
+            if (!hasSetStartTextures)
             {
-                for (var i = 0; i < m_weaponSubRenderers.Length; i++)
+                m_startTextures = Environment.GetMaterialTextures(m_renderer.material);
+
+                if (m_hasMultipleParts)
                 {
-                    // Updates the start textures of the skin.
-                    Texture2D[] _rendererMaterialTextures = SkinSystem.Environment.GetMaterialTextures(m_weaponSubRenderers[i].Renderer.material);
-                    m_weaponSubRenderers[i].StartTextureData = new WeaponTextureData(new TextureObject[7]
+                    for (int i = 0; i < m_weaponSubRenderers.Length; i++)
                     {
+                        // Updates the start textures of the skin.
+                        Texture2D[] _rendererMaterialTextures = SkinSystem.Environment.GetMaterialTextures(m_weaponSubRenderers[i].Renderer.material);
+                        m_weaponSubRenderers[i].StartTextureData = new WeaponTextureData(new TextureObject[7]
+                        {
                         new TextureObject(_rendererMaterialTextures[0]),
                         new TextureObject(_rendererMaterialTextures[1]),
                         new TextureObject(_rendererMaterialTextures[2]),
@@ -111,8 +115,11 @@ namespace SkinDesigner.Weapon
                         new TextureObject(_rendererMaterialTextures[4]),
                         new TextureObject(_rendererMaterialTextures[5]),
                         new TextureObject(_rendererMaterialTextures[6])
-                    });
+                        });
+                    }
                 }
+                
+                hasSetStartTextures = true;
             }
 
             if (m_disableOnStart)
@@ -130,6 +137,7 @@ namespace SkinDesigner.Weapon
 
             for (int i = 0; i < textures.Length; i++)
             {
+                this.m_weaponTextures.TextureObjects[i] = textures[i];
                 TextureObject obj = textures[i];
 
                 if (obj.TexturePath == "NULL")

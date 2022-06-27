@@ -1,7 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections;
+
 using UnityEngine;
+
 using SkinDesigner.SkinSystem;
+using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
 
 namespace SkinDesigner.Weapon
@@ -13,6 +16,10 @@ namespace SkinDesigner.Weapon
         [SerializeField] private WeaponObject[] m_weapons;
 
         private WeaponObject m_currentWeapon;
+        public TextureObject[] CurrentTextures
+        {
+            get { return m_currentWeapon.WeaponTextures.TextureObjects; }
+        }
 
         public WeaponObject[] Weapons
         {
@@ -121,7 +128,7 @@ namespace SkinDesigner.Weapon
             }
         }
 
-        public void SetTexture(TextureObject[] _TextureObjects, bool _AutoUpdate = true)
+        public void SetAllTextures(TextureObject[] _TextureObjects, bool _AutoUpdate = true)
         {
             if (m_currentWeapon == null)
                 return;
@@ -175,6 +182,8 @@ namespace SkinDesigner.Weapon
                     m_currentWeapon.WeaponSubRenderers[i].TextureData.TextureObjects = m_currentWeapon.WeaponSubRenderers[i].StartTextureData.TextureObjects;
                 }
             }
+
+            InspectorManager.Instance.UpdateTextureHolder(_TextureName);
         }
     }
 }
