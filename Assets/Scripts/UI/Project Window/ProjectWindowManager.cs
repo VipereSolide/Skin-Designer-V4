@@ -108,7 +108,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     {
         int weaponIndex = SkinDesigner.SkinSystem.Environment.WeaponToInt(weapon);
 
-        return CreateWeapon(weaponIndex);
+        return CreateWeapon(weaponIndex, currentPath);
     }
 
     public ProjectWindowContentWeapon CreateWeapon(int weapon, string path)
@@ -133,9 +133,9 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         return instantiated;
     }
 
-    public ProjectWindowContentWeapon CreateWeapon(int weapon)
+    public void CreateWeapon(int weapon)
     {
-        return this.CreateWeapon(weapon, currentPath);
+        this.CreateWeapon(weapon, currentPath);
     }
 
     public void CreateFolder(TMP_InputField folderName)

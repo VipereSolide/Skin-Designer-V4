@@ -5,13 +5,14 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine;
 
+using SkinDesigner.Textures;
 using SkinDesigner.Project;
 using FeatherLight.Pro;
 using TMPro;
 
 public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
-    [SerializeField] private ProjectReaderInfo m_associatedInfo;
+    [SerializeField] private Project m_associatedInfo;
     [SerializeField] private Image m_itemBackground;
     [SerializeField] private Color m_itemBackgroundHighlightColor;
 
@@ -38,7 +39,7 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
         get { return m_name; }
     }
 
-    public ProjectReaderInfo AssociatedInfo
+    public Project AssociatedInfo
     {
         get { return m_associatedInfo; }
     }
@@ -61,15 +62,16 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
         UpdateItem();
     }
 
-    public void AssociateWithInfo(ProjectReaderInfo info)
+    public void AssociateWithInfo(Project info)
     {
         m_associatedInfo = info;
 
-        m_name = info.Name;
+        m_name = info.ProjectName;
 
-        if (info.Weapons.Count > 0)
+        if (info.WeaponData.Length > 0)
         {
-            string texturePath = info.Weapons[0].MainTextures[0].TexturePath;
+            string texturePath = info.WeaponData[0].WeaponTextures.Albedo;
+
             bool isPathNull = (string.IsNullOrEmpty(texturePath) || string.IsNullOrWhiteSpace(texturePath));
 
             if (texturePath == "NULL" || isPathNull)
@@ -81,17 +83,8 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
             }
             else
             {
-                Texture2D backgroundTexture = (Texture2D)info.Weapons[0].MainTextures[0].Texture;
-
-                /* if (backgroundTexture == null)
-                {
-                    byte[] backgroundTextureBytes = File.ReadAllBytes(texturePath);
-                    backgroundTexture.LoadImage(backgroundTextureBytes);
-                    backgroundTexture.Apply();
-                    m_background = backgroundTexture.ToSprite();
-                } */
-
-                backgroundTexture = new Texture2D(2,2);
+                TextureObject textureObject = new TextureObject(texturePath);
+                m_background = ((Texture2D)textureObject.GetTextureFromPath()).ToSprite();
             }
         }
         else
@@ -164,8 +157,8 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         if (eventData.clickCount >= 1)
         {
-            ProjectManagerHUD.Instance.SelectProject(this.m_associatedInfo);
-            ProjectManagerHUD.Instance.m_info = this.m_associatedInfo;
+            ProjectManagerUI.Instance.SelectProject(this.m_associatedInfo);
+            //ProjectManagerHUD.Instance.m_info = this.m_associatedInfo;
         }
     }
 
