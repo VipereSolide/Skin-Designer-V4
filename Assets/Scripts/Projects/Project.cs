@@ -201,25 +201,25 @@ namespace SkinDesigner.Project
     {
 
         [SerializeField]
-        private string albedo = "";
+        private string albedo = "NULL";
 
         [SerializeField]
-        private string detail = "";
+        private string detail = "NULL";
 
         [SerializeField]
-        private string emission = "";
+        private string emission = "NULL";
 
         [SerializeField]
-        private string height = "";
+        private string height = "NULL";
 
         [SerializeField]
-        private string metallic = "";
+        private string metallic = "NULL";
 
         [SerializeField]
-        private string normal = "";
+        private string normal = "NULL";
 
         [SerializeField]
-        private string occlusion = "";
+        private string occlusion = "NULL";
 
         public string Albedo
         {

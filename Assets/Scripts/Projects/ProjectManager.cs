@@ -71,8 +71,7 @@ namespace SkinDesigner.Project
             project.ProjectMedia = projectMedias.ToArray();
             project.ProjectName = project_name;
             project.WeaponData = projectWeapons.ToArray();
-            string json = JsonUtility.ToJson(project);
-            Debug.Log(json);
+            currentProject = project;
         }
 
         public string GetProjectInString(Project project)
@@ -238,6 +237,14 @@ namespace SkinDesigner.Project
 
             currentProject = newCurrent;
             ProjectManagerUI.Instance.SelectProject(currentProject);
+        }
+
+        public void SaveCurrentProject()
+        {
+            SaveProject();
+
+            string directoryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + "/Skillwarz/Skin Designer/Projects/";
+            File.WriteAllText(directoryPath + currentProject.ProjectName + ".json", GetProjectInString(currentProject));
         }
     }
 }
