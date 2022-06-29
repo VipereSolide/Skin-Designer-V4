@@ -32,6 +32,13 @@ namespace SkinDesigner.SelectTexturesWindow
             get { return currentTexture; }
         }
 
+        private string currentTextureLink;
+
+        public string CurrentTextureLink
+        {
+            get { return currentTextureLink; }
+        }
+
         public bool IsOpened
         {
             get { return isOpened; }
@@ -93,10 +100,12 @@ namespace SkinDesigner.SelectTexturesWindow
             if (!item.IsItemNone)
             {
                 currentTexture = new TextureObject(item.TextureLink).GetTextureFromPath();
+                currentTextureLink = item.TextureLink;
             }
             else
             {
                 currentTexture = null;
+                currentTextureLink = "NULL";
             }
             
             CanvasGroupHelper.SetActive(windowCanvasGroup, false);

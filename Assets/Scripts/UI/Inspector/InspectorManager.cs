@@ -32,16 +32,6 @@ namespace SkinDesigner.Inspector
             Instance = this;
         }
 
-        private void Start()
-        {
-            selectTexturesWindow.onItemSelected.AddListener(SetTextureByMediaItem);
-        }
-
-        private void OnApplicationQuit()
-        {
-            selectTexturesWindow.onItemSelected.RemoveListener(SetTextureByMediaItem);
-        }
-
         public void SetInspectedWeapon(SkinSystem.Weapon weapon)
         {
             Weapon.WeaponManager manager = Weapon.WeaponManager.Instance;
@@ -123,19 +113,21 @@ namespace SkinDesigner.Inspector
         public void SetTextureByMediaItem()
         {
             TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(waitingHolder);
-            Texture texture = selectTexturesWindow.Texture;
             WeaponManager manager = WeaponManager.Instance;
 
-            if (texture == null)
+            Texture texture = selectTexturesWindow.Texture;
+            string textureLink = selectTexturesWindow.CurrentTextureLink;
+
+            if (texture == null || selectTexturesWindow.CurrentTextureLink == "NULL")
             {
                 manager.RemoveTexture(map);
             }
             else
             {
-                manager.SetTexture(map, new TextureObject(selectTexturesWindow.Texture));
+                manager.SetTexture(map, new TextureObject(selectTexturesWindow.Texture, textureLink));
             }
 
-            UpdateTextureHolder(map);
+            UpdateAllTextureHolders();
 
             waitingHolder = 0;
         }

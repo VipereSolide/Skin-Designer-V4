@@ -43,7 +43,9 @@ namespace SkinDesigner.Textures
         {
             if (string.IsNullOrEmpty(m_texturePath) || string.IsNullOrWhiteSpace(m_texturePath) || m_texturePath == "NULL")
             {
-                Debug.LogError("TextureObject has no texture path selected (null)");
+                if (m_texturePath != "NULL")
+                    Debug.LogError("TextureObject has no texture path selected (null)");
+
                 return null;
             }
             else

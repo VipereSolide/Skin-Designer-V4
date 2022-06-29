@@ -61,7 +61,15 @@ namespace SkinDesigner.Project
             {
                 WeaponObject weaponObject = WeaponManager.Instance.GetWeaponByWeaponType(weapon.Weapon);
 
-                WeaponTextures textures = new WeaponTextures(weaponObject.WeaponTextures.TextureObjects[0].TexturePath, weaponObject.WeaponTextures.TextureObjects[1].TexturePath, weaponObject.WeaponTextures.TextureObjects[2].TexturePath, weaponObject.WeaponTextures.TextureObjects[3].TexturePath, weaponObject.WeaponTextures.TextureObjects[4].TexturePath, weaponObject.WeaponTextures.TextureObjects[5].TexturePath, weaponObject.WeaponTextures.TextureObjects[6].TexturePath);
+                string albedo = weaponObject.WeaponTextures.TextureObjects[0].TexturePath; if (albedo == string.Empty || albedo == null) albedo = "NULL";
+                string detail = weaponObject.WeaponTextures.TextureObjects[1].TexturePath; if (detail == string.Empty || detail == null) detail = "NULL";
+                string emission = weaponObject.WeaponTextures.TextureObjects[2].TexturePath; if (emission == string.Empty || emission == null) emission = "NULL";
+                string height = weaponObject.WeaponTextures.TextureObjects[3].TexturePath; if (height == string.Empty || height == null) height = "NULL";
+                string metallic = weaponObject.WeaponTextures.TextureObjects[4].TexturePath; if (metallic == string.Empty || metallic == null) metallic = "NULL";
+                string normal = weaponObject.WeaponTextures.TextureObjects[5].TexturePath; if (normal == string.Empty || normal == null) normal = "NULL";
+                string occlusion = weaponObject.WeaponTextures.TextureObjects[6].TexturePath; if (occlusion == string.Empty || occlusion == null) occlusion = "NULL";
+
+                WeaponTextures textures = new WeaponTextures(albedo, detail, emission, height, metallic, normal, occlusion);
                 ProjectWeapon output = new ProjectWeapon((int)weapon.Weapon, textures);
 
                 projectWeapons.Add(output);
@@ -244,7 +252,7 @@ namespace SkinDesigner.Project
             SaveProject();
 
             string directoryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + "/Skillwarz/Skin Designer/Projects/";
-            File.WriteAllText(directoryPath + currentProject.ProjectName + ".json", GetProjectInString(currentProject));
+            File.WriteAllText(directoryPath + projectNameText.text + ".json", GetProjectInString(currentProject));
         }
     }
 }

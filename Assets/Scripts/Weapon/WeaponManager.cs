@@ -106,8 +106,16 @@ namespace SkinDesigner.Weapon
             {
                 TextureMap _textureMap = SkinDesigner.SkinSystem.Environment.IntToTextureMap(i);
                 string _trueTextureName = SkinDesigner.SkinSystem.Environment.GetTextureMapRealName(_textureMap);
+                Texture tex = m_currentWeapon.WeaponTextures.TextureObjects[i].GetTextureFromPath();
 
-                m_currentWeapon.GetComponent<MeshRenderer>().material.SetTexture(_trueTextureName, m_currentWeapon.WeaponTextures.TextureObjects[i].GetTextureFromPath());
+                if (tex == null)
+                {
+                    RemoveTexture(i);
+                }
+                else
+                {
+                    m_currentWeapon.GetComponent<MeshRenderer>().material.SetTexture(_trueTextureName, tex);
+                }
             }
         }
 
@@ -149,7 +157,6 @@ namespace SkinDesigner.Weapon
 
             if (_AutoUpdate)
                 UpdateTextureMap(_MapName);
-
         }
 
         public void SetPartsTexture(List<TextureObject[]> _TextureObjects, bool _AutoUpdate = true)
@@ -184,6 +191,26 @@ namespace SkinDesigner.Weapon
             }
 
             InspectorManager.Instance.UpdateTextureHolder(_TextureName);
+        }
+
+        public void RemoveTexture(int index)
+        {
+            if (m_currentWeapon == null)
+                return;
+
+            TextureMap map = Environment.IntToTextureMap(index);
+            string _trueTextureName = Environment.GetTextureMapRealName(map);
+            m_currentWeapon.GetComponent<MeshRenderer>().material.SetTexture(_trueTextureName, m_currentWeapon.StartTextures[index]);
+
+            if (m_currentWeapon.HasMultipleParts)
+            {
+                for (int i = 0; i < m_currentWeapon.WeaponSubRenderers.Length; i++)
+                {
+                    m_currentWeapon.WeaponSubRenderers[i].TextureData.TextureObjects = m_currentWeapon.WeaponSubRenderers[i].StartTextureData.TextureObjects;
+                }
+            }
+
+            InspectorManager.Instance.UpdateTextureHolder(map);
         }
     }
 }
