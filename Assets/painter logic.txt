@@ -1,0 +1,40 @@
+#region Resources
+
+Texture2D brushTexture;
+
+#endregion
+
+Texture2D weaponTexture = currentWeapon.WeaponTextures.Albedo;
+Texture2D paintTexture = new Texture2D(weaponTexture.width, weaponTexture.height);
+Texture2D outputTexture = new Texture2D(weaponTexture.width, weaponTexture.height);
+
+if (LMB)
+{
+	Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+	Vector2 brushSizeVector = Vector2.one * brushSize;
+	paintTexture.SetPixels(new Rect(mousePosition + brushSizeVector / 2, brushSizeVector), GetPixelsFromTexture(brushTexture, outputTexture, new Color32(0,0,0,255)) * brushSizeVector);
+}
+
+Color[] GetPixelsFromTexture(Texture2D texture, Texture2D source, Color32 color)
+{
+	Color[] colors = new Color[texture.width * texture.height];
+	
+	int i = 0;
+	for(int x = 0; x < texture.width; x++)
+	{
+		for(int y = 0; y < texture.height; y++)
+		{
+			Color output = texture.GetPixel(x,y);
+				
+			if (output == new Color(0,0,0,0))
+			{
+				output = source.GetPixel(x,y);
+			}
+
+			colors[i] = output;
+			i++;
+		}
+	}
+
+	return colors;
+}

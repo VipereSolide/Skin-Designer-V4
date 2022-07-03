@@ -18,5 +18,10 @@ namespace FeatherLight.Pro
         {
             return new Vector3(value.x, value.y, 0);
         }
+
+        public static Vector2Int ToVector2Int(this Vector2 value)
+        {
+            return new Vector2Int((int)value.x, (int)value.y);
+        }
     }
 }
