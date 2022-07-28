@@ -100,6 +100,7 @@ namespace SkinDesigner.Project
             if (currentProject == null)
                 return;
 
+            projectWindowManager.ResetAllItems();
             projectNameText.text = currentProject.ProjectName;
 
             if (currentProject.ProjectMedia.Length > 0)

@@ -202,6 +202,17 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         }
     }
 
+    public void ResetAllItems()
+    {
+        foreach(ProjectWindowContentItem i in this.items)
+        {
+            Destroy(i.gameObject);
+        }
+
+        ResetMedias();
+        this.items.Clear();
+    }
+
     public void CreateMedia(string name, Texture texture)
     {
         ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
