@@ -18,13 +18,13 @@ namespace SkinDesigner.Textures
 
         private void Start()
         {
-            m_albedo.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Albedo, new TextureObject(m_albedo.Texture, m_albedo.TexturePath), true));
-            m_detail.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Detail, new TextureObject(m_detail.Texture, m_detail.TexturePath), true));
-            m_emission.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Emission, new TextureObject(m_emission.Texture, m_emission.TexturePath), true));
-            m_height.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Height, new TextureObject(m_height.Texture, m_height.TexturePath), true));
-            m_metallic.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Metallic, new TextureObject(m_metallic.Texture, m_metallic.TexturePath), true));
-            m_normal.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Normal, new TextureObject(m_normal.Texture, m_normal.TexturePath), true));
-            m_occlusion.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Occlusion, new TextureObject(m_occlusion .Texture, m_occlusion.TexturePath), true));
+            m_albedo.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Albedo, m_albedo.Texture, true));
+            m_detail.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Detail, m_detail.Texture, true));
+            m_emission.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Emission, m_emission.Texture, true));
+            m_height.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Height, m_height.Texture, true));
+            m_metallic.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Metallic, m_metallic.Texture, true));
+            m_normal.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Normal, m_normal.Texture, true));
+            m_occlusion.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Occlusion, m_occlusion.Texture, true));
         }
 
     }

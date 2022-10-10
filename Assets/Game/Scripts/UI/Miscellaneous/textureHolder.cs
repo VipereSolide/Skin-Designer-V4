@@ -5,6 +5,7 @@ using UnityEngine;
 using System.IO;
 
 using SkinDesigner.SkinSystem;
+using SkinDesigner.Textures;
 using FeatherLight.Pro;
 using SFB;
 
@@ -24,84 +25,86 @@ public class textureHolder : MonoBehaviour
     [SerializeField] private bool m_RememberLastPathLocation;
 
     [Space()]
-
     public UnityEvent onSelectTexture;
 
-    private Texture2D m_HeldTexture;
-    public Texture2D Texture { get { return m_HeldTexture; } }
+    private TextureObject m_HeldTexture;
 
-    private string m_texturePath;
-
-    public string LastFileLocation
-    {
-        get
-        {
-            return FileSystem.LastPath;
-        }
-    }
-
-    public string TexturePath
-    {
-        get
-        {
-            return m_texturePath;
-        }
-    }
+    public TextureObject Texture => m_HeldTexture;
+    public string LastFileLocation => FileSystem.LastPath;
 
     public void SetFetchByUrlWindowActive(bool value)
     {
         StartCoroutine(CanvasGroupHelper.Fade(m_FetchByUrlWindow, value, m_FetchByUrlWindowAlphaTime));
     }
-
     public void TrashTexture()
     {
-        UpdateCurrentTexture(null);
+        SetHeldTexture((Texture2D)null);
     }
-
     public void FetchTextureOnDisk()
     {
         string[] _paths = StandaloneFileBrowser.OpenFilePanel("Select a texture...", FileSystem.LastPath, "png", false);
 
         if (_paths.Length <= 0)
             return;
-        
-        string _currentPath = _paths[0];
-        m_texturePath = _currentPath;
 
+        string _currentPath = _paths[0];
         FileSystem.LastPath = Directory.GetDirectoryRoot(_currentPath);
 
-        byte[] _textureInBytes = File.ReadAllBytes(_currentPath);
-        Texture2D _texture = new Texture2D(2,2);
-
-        _texture.LoadImage(_textureInBytes);
-        _texture.Apply();
-
-        UpdateCurrentTexture(_texture);
+        SetHeldTexture(_currentPath);
         onSelectTexture.Invoke();
     }
-
-    public void FetchTextureByURL()
+    /*public void FetchTextureByURL()
     {
         Texture2D _texture = (Texture2D)m_FetchByUrlImage.texture;
-        
         UpdateCurrentTexture(_texture);
-    }
-
-    private void UpdateCurrentTexture(Texture2D _newTexture)
-    {
-        m_HeldTexture = _newTexture;
-        m_CurrentTextureImage.texture = m_HeldTexture;
-    }
-
+    }*/
     public void UpdateCurrentTexture()
     {
-        m_CurrentTextureImage.texture = m_HeldTexture;
-    }
+        if (m_HeldTexture == null)
+        {
+            return;
+        }
 
+        if (m_HeldTexture.IsNull())
+        {
+            return;
+        }
+
+        if (m_HeldTexture.Texture == null)
+            m_CurrentTextureImage.texture = m_HeldTexture.GetTextureFromPath();
+        else
+            m_CurrentTextureImage.texture = m_HeldTexture.Texture;
+    }
     public void SetHeldTexture(Texture texture)
     {
-        m_HeldTexture = (Texture2D)texture;
+        m_HeldTexture = new TextureObject(texture);
 
         UpdateCurrentTexture();
+    }
+    public void SetHeldTexture(string path)
+    {
+        m_HeldTexture = new TextureObject(path);
+
+        UpdateCurrentTexture();
+    }
+    private void Update()
+    {
+        if (m_HeldTexture == null)
+        {
+            return;
+        }
+
+        if (m_HeldTexture.IsNull())
+        {
+            return;
+        }
+            
+        if (m_HeldTexture.HasTextureFileChanged())
+        {
+            UpdateCurrentTexture();
+            m_HeldTexture.GetFileInfo();
+
+            onSelectTexture.Invoke();
+        }
     }
 }

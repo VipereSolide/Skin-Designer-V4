@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using UnityEngine;
 
 using SkinDesigner.Textures;
+using FeatherLight.Pro.Console;
 using FeatherLight.Pro;
 using TMPro;
 
@@ -54,6 +55,11 @@ namespace SkinDesigner.Project
             manager.CurrentProject = info;
             manager.UpdateProject();
 
+            HasSelectedProject();
+        }
+
+        public void HasSelectedProject()
+        {
             SetActive(false);
         }
 
@@ -69,12 +75,16 @@ namespace SkinDesigner.Project
             string _directoryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + "/Skillwarz/Skin Designer/Projects/";
             string[] _filesInDir = Directory.GetFiles(_directoryPath);
 
+            Console.LogWarning($"Project Manager > Loading valid projects from path \"{_directoryPath}\".");
+
             foreach (string file in _filesInDir)
             {
                 if (Path.GetExtension(file) != ".json")
                     continue;
 
-                Debug.Log("file: " + file);
+                string fileName = Path.GetFileNameWithoutExtension(file);
+
+                Console.LogSuccess($"Project Manager > \"{fileName}\" was successfuly loaded!\nProject path: \"{file}\".");
 
                 string fileContent = File.ReadAllText(file);
                 Project info = ProjectManager.Instance.GetProject(fileContent);

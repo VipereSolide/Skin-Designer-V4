@@ -43,7 +43,7 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
     public UnityEvent onClick;
 
     [SerializeField]
-    public UnityEvent<ProjectWindowContentItem> onClickSelected;
+    public UnityEvent<ProjectWindowContentItem[]> onClickSelected;
 
     [Header("References")]
 

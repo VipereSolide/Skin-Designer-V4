@@ -12,48 +12,65 @@ using TMPro;
 
 public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
 {
-    [SerializeField] private Project m_associatedInfo;
-    [SerializeField] private Image m_itemBackground;
-    [SerializeField] private Color m_itemBackgroundHighlightColor;
+    [Header("Item")]
 
-    [Space()]
+    [SerializeField]
+    private string m_name;
+
+    [Header("Graphics")]
+
+    [SerializeField]
+    private float m_highlightSpeed;
+
+    [Space]
+
+    [Range(0,2)]
+    [SerializeField]
+    private float m_highlightedSize;
+
+    [Space]
+
+    [SerializeField]
+    private Color m_textDisabledColor = Color.white;
+
+    [SerializeField]
+    private Color m_textHighlightedColor = Color.white;
+
+    [SerializeField]
+    private Color m_itemBackgroundHighlightColor;
+
+    [Space]
     [SerializeField] private Sprite m_background;
-    [SerializeField] private Image m_backgroundImage;
-    [SerializeField] private Vector3 m_highlightedSize;
-    [SerializeField] private float m_highlightSpeed;
 
-    [Space()]
-    [SerializeField] private Color32 m_textDisabledColor = Color.white;
-    [SerializeField] private Color32 m_textHighlightedColor = Color.white;
-    [SerializeField] private TMP_Text m_itemNameText;
-    [SerializeField] private string m_name;
+    [Header("References")]
+
+    [SerializeField]
+    private TMP_Text m_itemNameText;
+
+    [SerializeField]
+    private Image m_backgroundImage;
+
+    [SerializeField]
+    private Image m_itemBackground;
+
+    [SerializeField]
+    private Project m_associatedInfo;
+
+
     private bool m_isHighlighted = false;
 
     public Sprite Background
     {
         get { return m_background; }
     }
-
     public string Name
     {
         get { return m_name; }
     }
-
     public Project AssociatedInfo
     {
         get { return m_associatedInfo; }
     }
-
-    protected void StartItem()
-    {
-        UpdateItem();
-    }
-
-    private void Start()
-    {
-        StartItem();
-    }
-
     public void SetData(string _Name, Sprite _Background)
     {
         this.m_name = _Name;
@@ -61,7 +78,6 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         UpdateItem();
     }
-
     public void AssociateWithInfo(Project info)
     {
         m_associatedInfo = info;
@@ -102,57 +118,52 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
     {
         m_itemNameText.text = m_name;
         m_backgroundImage.sprite = m_background;
-
-        if (m_isHighlighted)
-        {
-            m_itemNameText.color = m_textHighlightedColor;
-            m_itemBackground.color = m_itemBackgroundHighlightColor;
-        }
-        else
-        {
-            m_itemNameText.color = m_textDisabledColor;
-            m_itemBackground.color = new Color32(0, 0, 0, 0);
-        }
     }
-
-    private void OnDisable()
-    {
-        HighlightItem(false);
-    }
-
     private void HighlightItem(bool _Value)
     {
         m_isHighlighted = _Value;
         UpdateItem();
     }
+    protected void UpdateGraphics()
+    {
+        Color targetNameColor = m_textDisabledColor;
+        Color targetBackgroundColor = new Color(1, 1, 1, 0);
 
-    void Update()
+        if (m_isHighlighted)
+        {
+            targetNameColor = m_textHighlightedColor;
+            targetBackgroundColor = m_itemBackgroundHighlightColor;
+        }
+
+        m_itemNameText.color = Color.Lerp(m_itemNameText.color, targetNameColor, Time.deltaTime * m_highlightSpeed);
+        m_itemBackground.color = Color.Lerp(m_itemBackground.color, targetBackgroundColor, Time.deltaTime * m_highlightSpeed);
+        m_backgroundImage.transform.localScale = Vector3.Lerp(m_backgroundImage.transform.localScale, Vector3.one * ((m_isHighlighted) ? m_highlightedSize : 1), Time.deltaTime * m_highlightSpeed);
+    }
+    protected void StartItem()
+    {
+        UpdateItem();
+    }
+
+    private void Update()
     {
         UpdateGraphics();
     }
-
-    protected void UpdateGraphics()
+    private void Start()
     {
-        if (m_isHighlighted)
-        {
-            m_backgroundImage.transform.localScale = Vector3.Lerp(m_backgroundImage.transform.localScale, m_highlightedSize, Time.deltaTime * m_highlightSpeed);
-        }
-        else
-        {
-            m_backgroundImage.transform.localScale = Vector3.Lerp(m_backgroundImage.transform.localScale, Vector3.one, Time.deltaTime * m_highlightSpeed);
-        }
+        StartItem();
     }
-
+    private void OnDisable()
+    {
+        HighlightItem(false);
+    }
     public void OnPointerEnter(PointerEventData eventData)
     {
         HighlightItem(true);
     }
-
     public void OnPointerExit(PointerEventData eventData)
     {
         HighlightItem(false);
     }
-
     public void OnPointerDown(PointerEventData eventData)
     {
         if (eventData.clickCount >= 1)
@@ -161,7 +172,6 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
             //ProjectManagerHUD.Instance.m_info = this.m_associatedInfo;
         }
     }
-
     public void OnPointerUp(PointerEventData eventData)
     {
     }

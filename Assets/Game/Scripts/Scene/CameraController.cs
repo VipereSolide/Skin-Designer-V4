@@ -8,7 +8,7 @@ namespace SkinDesigner.Scene
     public class CameraController : MonoBehaviour
     {
         [SerializeField]
-        private Camera camera;
+        private new Camera camera;
 
         [SerializeField]
         private float rotationSpeed;

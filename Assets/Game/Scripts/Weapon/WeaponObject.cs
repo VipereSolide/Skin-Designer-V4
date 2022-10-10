@@ -108,17 +108,17 @@ namespace SkinDesigner.Weapon
                         Texture2D[] _rendererMaterialTextures = SkinSystem.Environment.GetMaterialTextures(m_weaponSubRenderers[i].Renderer.material);
                         m_weaponSubRenderers[i].StartTextureData = new WeaponTextureData(new TextureObject[7]
                         {
-                        new TextureObject(_rendererMaterialTextures[0]),
-                        new TextureObject(_rendererMaterialTextures[1]),
-                        new TextureObject(_rendererMaterialTextures[2]),
-                        new TextureObject(_rendererMaterialTextures[3]),
-                        new TextureObject(_rendererMaterialTextures[4]),
-                        new TextureObject(_rendererMaterialTextures[5]),
-                        new TextureObject(_rendererMaterialTextures[6])
+                            new TextureObject(_rendererMaterialTextures[0]),
+                            new TextureObject(_rendererMaterialTextures[1]),
+                            new TextureObject(_rendererMaterialTextures[2]),
+                            new TextureObject(_rendererMaterialTextures[3]),
+                            new TextureObject(_rendererMaterialTextures[4]),
+                            new TextureObject(_rendererMaterialTextures[5]),
+                            new TextureObject(_rendererMaterialTextures[6])
                         });
                     }
                 }
-                
+
                 hasSetStartTextures = true;
             }
 

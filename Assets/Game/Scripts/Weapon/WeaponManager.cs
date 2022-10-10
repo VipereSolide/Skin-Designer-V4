@@ -6,6 +6,7 @@ using UnityEngine;
 using SkinDesigner.SkinSystem;
 using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
+using FeatherLight.Pro.Console;
 
 namespace SkinDesigner.Weapon
 {
@@ -83,18 +84,37 @@ namespace SkinDesigner.Weapon
         public void UpdateTextureMap(TextureMap _MapName)
         {
             if (m_currentWeapon == null)
+            {
+                Console.LogError($"Weapon Manager > There is no weapon selected. You must have a current weapon set to use UpdateTextureMap!");
                 return;
+            }
 
-            string _trueTextureName = SkinDesigner.SkinSystem.Environment.GetTextureMapRealName(_MapName);
-            int _textureIndex = SkinDesigner.SkinSystem.Environment.TextureMapToInt(_MapName);
+            string _trueTextureName = Environment.GetTextureMapRealName(_MapName);
+            int _textureIndex = Environment.TextureMapToInt(_MapName);
             Texture texture = m_currentWeapon.WeaponTextures.TextureObjects[_textureIndex].Texture;
 
             if (texture == null)
             {
+                Console.LogError($"Weapon Manager > The texture of \"{_MapName}\" is null.");
                 texture = m_currentWeapon.WeaponTextures.TextureObjects[_textureIndex].GetTextureFromPath();
             }
 
-            m_currentWeapon.GetComponent<MeshRenderer>().material.SetTexture(_trueTextureName, texture);
+            MeshRenderer weaponRenderer = m_currentWeapon.GetComponent<MeshRenderer>();
+
+            Console.LogWarning($"Weapon Manager > Updating current weapon material field \"{_trueTextureName}\" to new texture...");
+
+            Texture before = weaponRenderer.material.GetTexture(_trueTextureName);
+            weaponRenderer.material.SetTexture(_trueTextureName, texture);
+
+            if (weaponRenderer.material.GetTexture(_trueTextureName) == before && texture != before)
+            {
+                if (before == null)
+                {
+                    Console.LogError($"Weapon Manager > The true texture name doesn't exist.");
+                }
+
+                Console.LogError($"Weapon Manager > Setting new material failed.");
+            }
         }
 
         public void UpdateAllTextureMaps()
@@ -150,13 +170,26 @@ namespace SkinDesigner.Weapon
 
         public void SetTexture(TextureMap _MapName, TextureObject _TextureObject, bool _AutoUpdate = true)
         {
-            if (m_currentWeapon == null)
+            if (_TextureObject == null)
+            {
+                Console.LogError($"Weapon Manager > The sent map is null!");
                 return;
+            }
+
+            Console.LogSuccess($"Map \"{System.IO.Path.GetFileName(_TextureObject.TexturePath)}\" was successfuly received.");
+
+            if (m_currentWeapon == null)
+            {
+                return;
+            }
 
             m_currentWeapon.WeaponTextures.TextureObjects[SkinSystem.Environment.TextureMapToInt(_MapName)] = _TextureObject;
 
             if (_AutoUpdate)
+            {
+                Console.Log($"Updating the texture holder \"{_MapName}\"...");
                 UpdateTextureMap(_MapName);
+            }
         }
 
         public void SetPartsTexture(List<TextureObject[]> _TextureObjects, bool _AutoUpdate = true)

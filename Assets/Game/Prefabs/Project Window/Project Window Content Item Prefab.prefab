@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6318288595104386203}
   - component: {fileID: 6160170992472031909}
   - component: {fileID: -1376171359166435201}
+  - component: {fileID: -6362948685766033300}
   m_Layer: 5
   m_Name: Project Window Content Item Prefab
   m_TagString: Untagged
@@ -53,22 +54,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b37c8070807bce4090ae7ff4031ed95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  name: item
+  childrenPath: root
+  background: {fileID: 0}
   canBeDragged: 1
-  m_itemBackground: {fileID: 6160170992472031909}
-  m_itemBackgroundHighlightColor: {r: 1, g: 1, b: 1, a: 0.09803922}
-  m_background: {fileID: 0}
-  m_backgroundImage: {fileID: 7256405280323194033}
-  m_highlightedSize: {x: 1.1, y: 1.1, z: 1.1}
-  m_highlightSpeed: 10
-  m_textDisabledColor:
+  itemNameText: {fileID: 7256405281152635923}
+  backgroundObject: {fileID: 6160170992472031909}
+  backgroundImageObject: {fileID: 7256405280323194033}
+  group: {fileID: -1376171359166435201}
+  highlightSpeed: 25
+  highlightBackgroundColor: {r: 1, g: 1, b: 1, a: 0.039215688}
+  selectedBackgroundColor: {r: 1, g: 1, b: 1, a: 0.078431375}
+  disabledTextColor:
     serializedVersion: 2
-    rgba: 3003121663
-  m_textHighlightedColor:
+    rgba: 2533359615
+  highlightedTextColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_itemNameText: {fileID: 7256405281152635923}
-  m_name: Null
-  m_childrenPath: Root
+  selectedTextColor:
+    serializedVersion: 2
+    rgba: 2868903935
+  highlightedSize: {x: 1.05, y: 1.05, z: 1.05}
 --- !u!222 &6318288595104386203
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -97,8 +103,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 5618123237d1d3f49a5a6025287065f7, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -106,7 +112,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 5
 --- !u!225 &-1376171359166435201
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -119,6 +125,52 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &-6362948685766033300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7256405280274519647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9d2f9067277ade4e9b47012ea4d9e17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _gradientType: 1
+  _blendMode: 2
+  _modifyVertices: 1
+  _offset: 0
+  _zoom: 1
+  _effectGradient:
+    serializedVersion: 2
+    key0: {r: 0.28235295, g: 0, b: 1, a: 1}
+    key1: {r: 0.8207547, g: 0.36133853, b: 0.6027573, a: 1}
+    key2: {r: 0, g: 0, b: 0, a: 0}
+    key3: {r: 0, g: 0, b: 0, a: 0}
+    key4: {r: 0, g: 0, b: 0, a: 0}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 65535
+    ctime2: 0
+    ctime3: 0
+    ctime4: 0
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 2
+    m_NumAlphaKeys: 2
 --- !u!1 &7256405280323194047
 GameObject:
   m_ObjectHideFlags: 0
@@ -131,7 +183,7 @@ GameObject:
   - component: {fileID: 7256405280323194034}
   - component: {fileID: 7256405280323194033}
   m_Layer: 5
-  m_Name: image
+  m_Name: item image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -206,7 +258,7 @@ GameObject:
   - component: {fileID: 7256405281152635924}
   - component: {fileID: 7256405281152635923}
   m_Layer: 5
-  m_Name: item_name
+  m_Name: item name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -341,7 +393,7 @@ GameObject:
   - component: {fileID: 7256405282035455531}
   - component: {fileID: 7256405282035455533}
   m_Layer: 5
-  m_Name: item_profile_mask
+  m_Name: mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

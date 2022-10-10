@@ -31,102 +31,40 @@ namespace SkinDesigner.WeaponPainting
         [SerializeField]
         private WeaponPainterTexture painterTexture;
 
+        [SerializeField]
+        private GameObject[] currentWeaponWireframes;
+
+        private RectTransform m_rectTransform;
         private LineRenderer currentPrefab;
+
+        private void Awake()
+        {
+            m_rectTransform = GetComponent<RectTransform>();
+        }
 
         private void Update()
         {
-            bool clickOnTexture = (Input.GetMouseButton(0) && painterTexture.Highlighted);
-            bool clickedOnTexture = (Input.GetMouseButtonDown(0) && painterTexture.Highlighted);
-            bool mouseMoving = (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0);
-
-            Vector2 realMousePositionVector2 = GetMousePositionRelativeToUI(painterTexture.GetComponent<RectTransform>(), 2048, 2048);
-            Vector3 realMousePositionVector3 = new Vector3(realMousePositionVector2.x, realMousePositionVector2.y, 0);
-            Vector3 endPoint = Vector3.zero;
-
+            /*
             RaycastHit hit;
-            Ray ray = painterCamera.ScreenPointToRay(realMousePositionVector3);
 
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(cameraRay, out hit))
             {
-                endPoint = hit.point;
-                Debug.Log("hi");
-            }
-
-            Vector3 worldPosition = new Vector3(endPoint.x, endPoint.y, 0) - lineRendererContainer.position;
-
-            if (clickedOnTexture || (mouseMoving && clickOnTexture))
-            {
-                if (currentPrefab == null)
+                for(int i = 0; i < currentWeaponWireframes.Length; i++)
                 {
-                    LineRenderer newPrefab = Instantiate(lineRendererPrefab, lineRendererContainer);
-                    newPrefab.positionCount = 0;
-                    currentPrefab = newPrefab;
-                }
-
-                Vector3 lastPointPosition = currentPrefab.GetPosition(currentPrefab.positionCount - 2);
-                float distanceBetweenPositions = Vector3.Distance(worldPosition, lastPointPosition);
-
-                if (distanceBetweenPositions >= increment)
-                {
-                    currentPrefab.positionCount++;
-                    currentPrefab.SetPosition(currentPrefab.positionCount - 1, worldPosition / rectSize);
+                    currentWeaponWireframes[i].SetActive(hit.transform.gameObject == currentWeaponWireframes[i]);
                 }
             }
-
-            cursor.transform.position = new Vector3(endPoint.x, endPoint.y, 0);
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                currentPrefab = null;
-            }
+            */
         }
 
-        /*private void Update()
+        private void OnDrawGizmos()
         {
-            bool clickOnTexture = (Input.GetMouseButton(0) && painterTexture.Highlighted);
-            bool clickedOnTexture = (Input.GetMouseButtonDown(0) && painterTexture.Highlighted);
-            bool mouseMoving = (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0);
-
-
-
-            if (clickedOnTexture || (mouseMoving && clickOnTexture))
-            {
-                if (currentPrefab == null)
-                {
-                    LineRenderer newPrefab = Instantiate(lineRendererPrefab, lineRendererContainer);
-                    newPrefab.positionCount = 0;
-                    currentPrefab = newPrefab;
-                }
-
-                Vector2 realMousePositionVector2 = GetMousePositionRelativeToUI(painterTexture.GetComponent<RectTransform>(), 2048, 2048);
-                Vector3 realMousePositionVector3 = new Vector3(realMousePositionVector2.x, realMousePositionVector2.y, 0);
-                Vector3 endPoint = Vector3.zero;
-
-                RaycastHit hit;
-                Ray ray = painterCamera.ScreenPointToRay(realMousePositionVector3);
-
-                if (Physics.Raycast(ray, out hit))
-                {
-                    endPoint = hit.point;
-                }
-
-                Vector3 worldPosition = new Vector3(endPoint.x, endPoint.y, 0) - lineRendererContainer.position;
-
-                Vector3 lastPointPosition = currentPrefab.GetPosition(currentPrefab.positionCount - 2);
-                float distanceBetweenPositions = Vector3.Distance(worldPosition, lastPointPosition);
-
-                if (distanceBetweenPositions >= increment)
-                {
-                    currentPrefab.positionCount++;
-                    currentPrefab.SetPosition(currentPrefab.positionCount - 1, worldPosition / rectSize);
-                }
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                currentPrefab = null;
-            }
-        }*/
+            Vector2 mousePos = GetMousePositionRelativeToUI(m_rectTransform, 2048, 2048);
+            
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(mousePos, 20f);
+            Gizmos.DrawLine(painterCamera.transform.position, mousePos);
+        }
 
         private Vector2 GetMousePositionRelativeToUI(RectTransform rect, int width, int height)
         {

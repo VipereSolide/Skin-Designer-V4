@@ -21,19 +21,31 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 {
     public static ProjectWindowManager Instance;
 
+    [Header("General")]
     [SerializeField] private ProjectWindowPopup windowPopupManager;
-    [SerializeField] private Transform projectWindowItemContainer;
+
+    [Space]
+    [SerializeField] private Transform itemContainer;
+
+    [Header("Paths")]
+    [SerializeField] private GameObject m_arrowPrefab;
+    [SerializeField] private TMP_Text m_textPrefab;
+    [SerializeField] private Transform m_pathContainer;
+
+    [Header("Dragging")]
+    [SerializeField] private DraggingItemGhost draggingItemGhost;
+    [SerializeField] private ScrollRect scrollRect;
+
+    [Header("Items")]
     [SerializeField] private ProjectWindowContentItem projectWindowItemPrefab;
     [SerializeField] private ProjectWindowContentWeapon projectWindowWeaponPrefab;
     [SerializeField] private ProjectWindowContentFolder projectWindowFolderPrefab;
+    [SerializeField] private ProjectWindowContentFolder projectWindowFolderReturnPrefab;
+
+
+    [Header("Behaviour")]
     [SerializeField] private Sprite[] weaponsSprite;
-
-    [SerializeField] private Transform m_dropItemContainer;
-    [SerializeField] private Transform m_pathContainer;
-    [SerializeField] private Transform m_contentContainer;
-    [SerializeField] private TMP_Text m_textPrefab;
-    [SerializeField] private GameObject m_arrowPrefab;
-
+    
     [SerializeField]
     private List<string> m_media = new List<string>();
 
@@ -45,37 +57,42 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     private List<ContentItemTextureQueueItem> mediaTextureQueue = new List<ContentItemTextureQueueItem>();
 
     private bool isDragging = false;
-    private ProjectWindowContentItem dragging;
-    private ProjectWindowContentItem selected;
+    private List<ProjectWindowContentItem> dragging = new List<ProjectWindowContentItem>();
+    private List<ProjectWindowContentItem> selected = new List<ProjectWindowContentItem>();
     private ProjectWindowContentItem lastDragged;
     private ProjectWindowContentItem highlighted;
     private PointerEventData pointerEventData;
+
+    private Vector3 lastMousePosition;
+    private bool isMouseMoving;
 
     public string[] Medias
     {
         get { return m_media.ToArray(); }
     }
-
     public ProjectWindowContentItem[] Items
     {
         get { return items.ToArray(); }
     }
-
-    public ProjectWindowContentItem Selected
+    public ProjectWindowContentItem[] Selected
     {
-        get { return selected; }
+        get { return selected.ToArray(); }
     }
-
+    public ProjectWindowContentItem Highlighted
+    {
+        get
+        {
+            return highlighted;
+        }
+    }
     public void ResetMedias()
     {
         m_media.Clear();
     }
-
     public void SetMedias(string[] values)
     {
         m_media = values.ToList();
     }
-
     public void AddMedia(string value)
     {
         for (int i = 0; i < m_media.Count; i++)
@@ -88,37 +105,32 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         m_media.Add(value);
     }
-
     private void Awake()
     {
         Instance = this;
     }
-
     private void Start()
     {
         UpdatePath("Root");
     }
-
     public void UpdatePath(ProjectWindowContentFolder _Folder)
     {
         UpdatePath(_Folder.Path);
     }
-
     public ProjectWindowContentWeapon CreateWeapon(SkinDesigner.SkinSystem.Weapon weapon)
     {
         int weaponIndex = SkinDesigner.SkinSystem.Environment.WeaponToInt(weapon);
 
         return CreateWeapon(weaponIndex, currentPath);
     }
-
     public ProjectWindowContentWeapon CreateWeapon(int weapon, string path)
     {
         string weaponName = SkinDesigner.SkinSystem.Environment.IntToWeapon(weapon).ToString();
         Sprite weaponTexture = weaponsSprite[weapon];
 
-        SkinDesigner.SkinSystem.Weapon weaponType = SkinDesigner.SkinSystem.Environment.IntToWeapon(weapon);
+        Weapon weaponType = SkinDesigner.SkinSystem.Environment.IntToWeapon(weapon);
 
-        ProjectWindowContentWeapon instantiated = Instantiate(projectWindowWeaponPrefab, projectWindowItemContainer);
+        ProjectWindowContentWeapon instantiated = Instantiate(projectWindowWeaponPrefab, itemContainer);
         instantiated.SetData(weaponName, weaponTexture);
         instantiated.SetDirectory(path);
 
@@ -132,59 +144,41 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         items.Add(instantiated);
         return instantiated;
     }
-
     public void CreateWeapon(int weapon)
     {
         this.CreateWeapon(weapon, currentPath);
     }
-
     public void CreateFolder(TMP_InputField folderName)
     {
         this.CreateFolder(folderName.text);
     }
-
     public ProjectWindowContentFolder CreateFolder(string folderName)
     {
-        ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
-        instantiated.SetName(folderName);
-        instantiated.SetChildrenPath(currentPath);
-        instantiated.SetPath(currentPath + "/" + folderName);
-
-        ProjectWindowContentFolder returnInstantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
-        returnInstantiated.SetName("..");
-        returnInstantiated.SetChildrenPath(currentPath + "/" + folderName);
-        returnInstantiated.SetPath(currentPath);
-        instantiated.AddChild(returnInstantiated);
-
-        UpdatePath(currentPath);
-        
-        items.Add(returnInstantiated);
-        items.Add(instantiated);
-
-        return instantiated;
+        return CreateFolder(folderName, currentPath, currentPath);
     }
-
     public ProjectWindowContentFolder CreateFolder(string folderName, string _childrenPath, string _currentPath)
     {
-        ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
+        ProjectWindowContentFolder instantiated = Instantiate(projectWindowFolderPrefab, itemContainer);
         instantiated.SetName(folderName);
         instantiated.SetChildrenPath(_childrenPath);
         instantiated.SetPath(_currentPath + "/" + folderName);
+        instantiated.transform.SetAsFirstSibling();
 
-        ProjectWindowContentFolder returnInstantiated = Instantiate(projectWindowFolderPrefab, projectWindowItemContainer);
-        returnInstantiated.SetName("..");
+        ProjectWindowContentFolder returnInstantiated = Instantiate(projectWindowFolderReturnPrefab, itemContainer);
+        returnInstantiated.SetName("Go Back");
         returnInstantiated.SetChildrenPath(_childrenPath + "/" + folderName);
         returnInstantiated.SetPath(_currentPath);
+        returnInstantiated.transform.SetSiblingIndex(1);
         instantiated.AddChild(returnInstantiated);
+        instantiated.ReturnFolder = returnInstantiated;
 
         UpdatePath(_currentPath);
         
-        items.Add(returnInstantiated);
-        items.Add(instantiated);
+        items.Insert(0, returnInstantiated);
+        items.Insert(0, instantiated);
 
         return instantiated;
     }
-
     public void ImportMedia()
     {
         string[] selectedFiles = StandaloneFileBrowser.OpenFilePanel("Select a media...", FileSystem.LastPath, "png", true);
@@ -201,7 +195,6 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             CreateMedia(Path.GetFileNameWithoutExtension(path), path);
         }
     }
-
     public void ResetAllItems()
     {
         foreach(ProjectWindowContentItem i in this.items)
@@ -212,38 +205,34 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         ResetMedias();
         this.items.Clear();
     }
-
     public void CreateMedia(string name, Texture texture)
     {
-        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
+        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, itemContainer);
         instantiated.SetData(name, TextureHelper.ToSprite((Texture2D)texture));
         instantiated.SetDirectory(currentPath);
 
         items.Add(instantiated);
     }
-
     public void CreateMedia(string name, Sprite texture)
     {
-        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
+        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, itemContainer);
         instantiated.SetData(name, texture);
         instantiated.SetDirectory(currentPath);
 
         items.Add(instantiated);
     }
-
     public void CreateMedia(string name, Sprite texture, Action onClick)
     {
-        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
+        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, itemContainer);
         instantiated.SetData(name, texture);
         instantiated.SetDirectory(currentPath);
         instantiated.onClick = onClick;
 
         items.Add(instantiated);
     }
-
     public ProjectWindowContentItem CreateMedia(string name, string texture)
     {
-        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, projectWindowItemContainer);
+        ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, itemContainer);
         instantiated.SetData(name, TextureHelper.ToSprite(Texture2D.blackTexture), texture);
         instantiated.SetDirectory(currentPath);
 
@@ -254,7 +243,6 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         return instantiated;
     }
-
     public void UpdatePath(string _NewPath)
     {
         currentPath = _NewPath;
@@ -264,7 +252,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         CreatePathObjectsFromString(_NewPath);
 
-        foreach (Transform _contentItem in m_contentContainer)
+        foreach (Transform _contentItem in itemContainer)
         {
             ProjectWindowContentItem _item = _contentItem.GetComponent<ProjectWindowContentItem>();
 
@@ -276,10 +264,9 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             _item.gameObject.SetActive(_item.ChildrenPath == _NewPath);
         }
     }
-
     public void UpdateProject()
     {
-        foreach (Transform _contentItem in m_contentContainer)
+        foreach (Transform _contentItem in itemContainer)
         {
             ProjectWindowContentItem _item = _contentItem.GetComponent<ProjectWindowContentItem>();
 
@@ -291,67 +278,64 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             _item.gameObject.SetActive(_item.ChildrenPath == currentPath);
         }
     }
-
-    private GameObject[] CreatePathObjectsFromString(string _path)
+    private GameObject[] CreatePathObjectsFromString(string initialPath)
     {
-        List<GameObject> _output = new List<GameObject>();
+        // all the objects that will be returned as the path objects.
+        List<GameObject> pathObjects = new List<GameObject>();
+        // we split the path into several segments to treat them all separately.
+        string[] pathSegments = initialPath.Split('/');
 
-        string[] _names = _path.Split('/');
-
-        for (int i = 0; i < _names.Length; i++)
+        // we do the path object treatment for all the path segments.
+        for (int i = 0; i < pathSegments.Length; i++)
         {
-            string _name = _names[i];
+            string currentSegment = pathSegments[i];
 
-            TMP_Text _instantiated = Instantiate(m_textPrefab, m_pathContainer);
-            _instantiated.text = _name;
+            // create the segment name text.
+            TMP_Text segmentText = Instantiate(m_textPrefab, m_pathContainer);
+            segmentText.text = currentSegment;
 
-
-            if (i != _names.Length - 1)
+            if (i != pathSegments.Length - 1)
             {
+                string pathToUpdate = pathSegments[0];
+
                 if (i > 0)
                 {
-                    string _newPath = "";
+                    string correctedPath = "";
 
                     for (int c = 0; c <= i; c++)
                     {
-                        _newPath += _names[c] + ((c < i) ? "/" : "");
+                        correctedPath += pathSegments[c] + ((c < i) ? "/" : "");
                     }
 
-                    EventTrigger trigger = _instantiated.gameObject.AddComponent<EventTrigger>();
-                    var pointerDown = new EventTrigger.Entry();
-                    pointerDown.eventID = EventTriggerType.PointerDown;
-                    pointerDown.callback.AddListener((e) => UpdatePath(_newPath));
-                    trigger.triggers.Add(pointerDown);
+                    pathToUpdate = correctedPath;
                 }
-                else
-                {
-                    EventTrigger trigger = _instantiated.gameObject.AddComponent<EventTrigger>();
-                    var pointerDown = new EventTrigger.Entry();
-                    pointerDown.eventID = EventTriggerType.PointerDown;
-                    pointerDown.callback.AddListener((e) => UpdatePath(_names[0]));
-                    trigger.triggers.Add(pointerDown);
-                }
+
+                EventTrigger.Entry pointerDown = new EventTrigger.Entry();
+                pointerDown.eventID = EventTriggerType.PointerDown;
+                pointerDown.callback.AddListener((e) => { UpdatePath(pathToUpdate); });
+
+                EventTrigger trigger = segmentText.gameObject.GetComponent<EventTrigger>();
+                trigger.triggers.Add(pointerDown);
             }
 
-            _output.Add(_instantiated.gameObject);
+            pathObjects.Add(segmentText.gameObject);
 
-            if (i < _names.Length - 1)
+            if (i < pathSegments.Length - 1)
             {
-                GameObject _arrow = Instantiate(m_arrowPrefab, m_pathContainer);
-                _output.Add(_arrow);
+                GameObject pathSeparator = Instantiate(m_arrowPrefab, m_pathContainer);
+                pathObjects.Add(pathSeparator);
             }
         }
 
-        LayoutGroup _layout = m_pathContainer.GetComponent<LayoutGroup>();
+        LayoutGroup containerLayoutGroup = m_pathContainer.GetComponent<LayoutGroup>();
 
-        if (_layout != null)
+        if (containerLayoutGroup != null)
         {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(_layout.GetComponent<RectTransform>());
+            LayoutRebuilder.ForceRebuildLayoutImmediate(containerLayoutGroup.GetComponent<RectTransform>());
         }
 
-        return _output.ToArray();
+        return pathObjects.ToArray();
     }
-
     public void DestroyItem(ProjectWindowContentItem item)
     {
         if (item.GetType() == typeof(ProjectWindowContentFolder))
@@ -366,44 +350,73 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         WeaponManager manager = WeaponManager.Instance;
 
-        for(int i = 0; i < manager.CurrentTextures.Length; i++)
+        if (manager.CurrentWeapon == null)
+        {
+            Debug.Log($"Project > Current weapon is null. Destroying item \"{item.Name}\" none the less...");
+            Destroy(item.gameObject);
+            items.Remove(item);
+
+            return;
+        }
+
+        if (manager.CurrentTextures == null)
+        {
+            Debug.Log($"Project > Current weapon textures are null. Destroying item \"{item.Name}\" none the less...");
+            Destroy(item.gameObject);
+            items.Remove(item);
+         
+            return;
+        }
+
+        for (int i = 0; i < manager.CurrentTextures.Length; i++)
         {
             TextureObject held = item.HeldTexture;
             TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(i);
 
-            Debug.Log(map);
+            Debug.Log($"Project > Trying to destruct texture \"{map}\".");
 
-            if (held.TexturePath != string.Empty && !string.IsNullOrWhiteSpace(held.TexturePath))
+            if ((held.TexturePath != string.Empty && !string.IsNullOrWhiteSpace(held.TexturePath)) || held.Texture != null)
             {
-                Debug.Log("has a texture.");
+                Debug.Log($"Project > Item's held texture successfuly found.");
+                
                 if (manager.CurrentTextures[i].TexturePath == held.TexturePath || manager.CurrentTextures[i].Texture == held.Texture)
                 {
-                    Debug.Log("the texture objects correspond.");
+                    Debug.Log($"Project > Item's held texture correspond to the \"{map}\" map.\nProceeding to map destruction...");
                     manager.RemoveTexture(map);
                 }
             }
             else
             {
+                Debug.Log($"Project > The item's held texture had no texture path!");
             }
         }
 
         Destroy(item.gameObject);
         items.Remove(item);
     }
-
     public void DestroySelectedItem()
     {
-        if (selected != null)
+        if (selected == null)
         {
-            DestroyItem(selected);
+            return;
         }
-    }
 
+        if (selected.Count <= 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < selected.Count; i++)
+        {
+            DestroyItem(selected[i]);
+        }
+
+        ResetSelected();
+    }
     public void DisplayContentItemTextures()
     {
         StartCoroutine(DisplayContentItemTexturesCoroutine());
     }
-
     public IEnumerator DisplayContentItemTexturesCoroutine()
     {
         while (mediaTextureQueue.Count != 0)
@@ -420,88 +433,231 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
             Texture2D output = new Texture2D(2, 2);
             yield return output.LoadImage(File.ReadAllBytes(texturePath));
-            TextureHelper.Scale(output, 128, 128);
+            output.filterMode = FilterMode.Point;
+            output.wrapMode = TextureWrapMode.Repeat;
+
+            if (output.width > 128)
+            {
+                TextureHelper.Scale(output, 128, 128);
+            }
+
             output.Apply();
 
             i.item.SetData(i.item.Name, TextureHelper.ToSprite(output));
             mediaTextureQueue.Remove(i);
         }
     }
-
-    public ProjectWindowContentItem Highlighted
-    {
-        get
-        {
-            return highlighted;
-        }
-    }
-
     public void SetHighlighted(ProjectWindowContentItem item)
     {
         highlighted = item;
     }
-
     private void ResetSelected()
     {
-        selected.IsSelected = false;
-        selected = null;
+        for (int i = 0; i < selected.Count; i++)
+        {
+            selected[i].IsSelected = false;
+        }
+     
+        selected.Clear();
     }
-
     private void SetSelected(ProjectWindowContentItem item)
     {
-        selected = item;
-        selected.IsSelected = true;
+        selected.Add(item);
+        item.IsSelected = true;
     }
-
+    private void RemoveSelected(ProjectWindowContentItem item)
+    {
+        item.IsSelected = false;
+        selected.Remove(item);
+    }
     public void RenameSelectedItem(TMP_InputField name)
     {
-        if (selected != null) selected.SetData(name.text, selected.Background);
-    }
+        if (selected == null)
+        {
+            return;
+        }
 
+        if (selected.Count > 1)
+        {
+            return;
+        }
+        
+        selected[0].SetData(name.text, selected[1].Background);
+    }
     public void SetMidAction(bool value)
     {
         isMidAction = value;
     }
-
     private void Update()
     {
-        bool isClickingOnHighlighted = (Input.GetMouseButtonDown(0) && highlighted != null);
-        bool isClickingOnSelected = (selected != null && Input.GetMouseButtonDown(0) && highlighted == selected);
-        bool isClickingNowhere = (Input.GetMouseButtonDown(0) && highlighted == null);
+        float mouseDistance = Vector3.Distance(Input.mousePosition, lastMousePosition);
+        isMouseMoving = (mouseDistance > 5);
 
-        if (isClickingOnHighlighted)
+        HandleSelectedActions();
+        HandleRightClickMenu();
+
+        lastMousePosition = Input.mousePosition;
+    }
+    private void HandleSelectedActions()
+    {
+        HandleDragging();
+
+        if (selected == null)
         {
-            if (selected != null)
+            return;
+        }
+
+        bool clickMouseButton = Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1);
+        bool clickMouseButtonHeld = Input.GetMouseButton(0);
+        bool isClickingNowhere = (clickMouseButton && highlighted == null);
+
+        bool pressAddSelectedKeys = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+
+        // If there is a highlighted object and the LMB is being held, we can imagine
+        // that the user may want to drag this item.
+        if (highlighted != null && clickMouseButtonHeld)
+        {
+            // If the user is holding the LMB for longer than 0.35 seconds
+            // we start dragging.
+            if (Mouse.instance.LMBHeldTime() > 0.35f)
+            {
+                HandleDraggingEvents();
+             
+                // As we're dragging, we don't want to execute any
+                // explorer type logic.
+                return;
+            }
+            else
+            {
+                // Sets the position of the draggingItemGhost in advance so
+                // the user doesn't see it being teleported when it's activated.
+                draggingItemGhost.transform.position = Input.mousePosition;
+            }
+        }
+
+        // If there is selected items and the user is not clicking on an item and is not
+        // midaction (for example in the right click menu), deselect everything.
+        if (selected.Count > 0 && isClickingNowhere && !isMidAction)
+        {
+            ResetSelected();
+
+            // No need for any further logic as we just deselected everything.
+            return;
+        }
+
+        // If there is no selected items yet, we can select one by just clicking on it.
+        if (selected.Count == 0)
+        {
+            // If the user clicks on the highlighted, add it to the selected item list
+            // just after clearing it to avoid weird scenario where there is a ghost
+            // selected item in the list.
+            if (clickMouseButton && highlighted != null)
+            {
+                selected.Clear();
+                SetSelected(highlighted);
+
+                return;
+            }
+        }
+        // If there is only one item selected, we can perform simple operations like
+        // rename the item or drag it to a weapon holder for example.
+        else
+        {
+            // If the user clicks on another item while pressing control, it will add this item to the selected list. If the item was
+            // already selected, we simply unselect it. If the user is not pressing control, just unselect the first one and select the
+            // new highlighted one.
+            if (highlighted != null)
+            {
+                if (clickMouseButton)
+                {
+                    if (pressAddSelectedKeys)
+                    {
+                        if (highlighted.IsSelected)
+                        {
+                            RemoveSelected(highlighted);
+                        }
+                        else
+                        {
+                            SetSelected(highlighted);
+                        }
+
+                        return;
+                    }
+                    // If the user is pressing shift and if there is only one object selected for now, do a row selection.
+                    else if (selected.Count == 1 && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
+                    {
+                        // Get the sibling index of the currently selected item. This is where the selection will start.
+                        int start = selected[0].transform.GetSiblingIndex();
+                        // Get the sibling index of the highlighted item plus one. This is where selection will end.
+                        // We add one to it so the for loop also includes the highlighted item itself.
+                        int end = highlighted.transform.GetSiblingIndex() + 1;
+
+                        // If the selection end is smaller than it's start, we need to swap the two.
+                        if (end < start)
+                        {
+                            // Storing the last end value to assign it to the start one.
+                            // We retrieve 2 from it so will include the item too.
+                            int t = end - 2;
+
+                            // Swapping the values.
+                            end = start;
+                            start = t;
+                        }
+
+                        // Setting the selected items.
+                        for (int i = start + 1; i < end; i++)
+                        {
+                            SetSelected(items[i]);
+                        }
+
+                        return;
+                    }
+                    // If the user clicks on another item, select this one instead.
+                    else if (!selected.Contains(highlighted))
+                    {
+                        ResetSelected();
+                        SetSelected(highlighted);
+                    }
+                }
+            }
+            else if (clickMouseButton)
             {
                 ResetSelected();
             }
-
-            SetSelected(highlighted);
         }
 
-        if (selected != null)
-        {
-            if (isClickingOnSelected && selected.CanBeDragged)
-            {
-                StartDragging();
-            }
-
-            if (isClickingNowhere && !isMidAction)
-            {
-                ResetSelected();
-            }
-        }
-
+    }
+    private void HandleDragging()
+    {
+        // If the user is dragging an item and let up the mouse button, then when can
+        // stop dragging.
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             StopDragging();
         }
+    }
+    private void HandleDraggingEvents()
+    {
+        // Check if any of the selected are set as "not draggable". If so
+        // do not drag the item.
+        bool canBeDragged = true;
 
-        if (isDragging && dragging != null)
+        for (int i = 0; i < selected.Count; i++)
         {
-            dragging.transform.position = Input.mousePosition;
+            if (selected[i].CanBeDragged == false)
+            {
+                canBeDragged = false;
+                break;
+            }
         }
 
+        if (canBeDragged)
+        {
+            StartDragging();
+        }
+    }
+    private void HandleRightClickMenu()
+    { 
         if (Input.GetMouseButtonDown(1))
         {
             if (highlighted != null)
@@ -514,79 +670,118 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             }
         }
     }
-
     public void StartDragging()
     {
         isDragging = true;
-        dragging = highlighted;
+        dragging = selected;
 
-        dragging.transform.SetParent(m_dropItemContainer);
-        dragging.transform.localEulerAngles = new Vector3(0, 0, 15);
+        scrollRect.enabled = false;
+        draggingItemGhost.gameObject.SetActive(true);
+        draggingItemGhost.Init((dragging.Count > 1) ? DraggingItemGhost.GhostMode.Multiple : DraggingItemGhost.GhostMode.Single, dragging.Count);
 
-        dragging.GetComponent<CanvasGroup>().blocksRaycasts = false;
-        dragging.GetComponent<CanvasGroup>().interactable = false;
+        for (int i = 0; i < dragging.Count; i++)
+        {
+            dragging[i].Group.alpha = 0.5f;
+            dragging[i].Group.interactable = false;
+            dragging[i].Group.blocksRaycasts = false;
+        }
     }
-
     public void StopDragging()
     {
+        scrollRect.enabled = true;
+        draggingItemGhost.gameObject.SetActive(false);
+
         pointerEventData = new PointerEventData(EventSystem.current);
         pointerEventData.position = Input.mousePosition;
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerEventData, results);
 
+        // 0 = texture holder; 1 = folder;
+        int itemType = 0;
+        ProjectWindowContentFolder folder = null;
+        textureHolder textureHolder = null;
+
         if (results.Count > 0)
         {
             foreach (RaycastResult result in results)
             {
+                ProjectWindowContentFolder _folder = result.gameObject.GetComponent<ProjectWindowContentFolder>();
+                textureHolder _textureHolder = result.gameObject.GetComponent<textureHolder>();
 
-                ProjectWindowContentFolder folder = result.gameObject.GetComponent<ProjectWindowContentFolder>();
-
-                if (folder != null)
+                // if we hit a folder.
+                if (_folder != null)
                 {
-                    dragging.SetDirectory(folder);
+                    itemType = 1;
+                    folder = _folder;
+                    break;
+                }
+
+                // If we hit a texture holder.
+                else if (_textureHolder != null)
+                {
+                    itemType = 0;
+                    textureHolder = _textureHolder;
+                    break;
+                }
+
+                else
+                {
+                    itemType = -1;
+                    break;
+                }
+            }
+
+            foreach (ProjectWindowContentItem item in dragging)
+            {
+                if (itemType == 0 && item.GetType() != typeof(ProjectWindowContentWeapon))
+                {
+                    string textureName = textureHolder.transform.parent.parent.name;
+                    TextureMap textureMap = (TextureMap)Enum.Parse(typeof(TextureMap), textureName);
+                    WeaponManager.Instance.SetTexture(textureMap, item.HeldTexture);
+                    InspectorManager.Instance.UpdateTextureHolder(textureMap);
+                }
+                else if (itemType == 1)
+                {
+                    item.SetDirectory(folder);
 
                     if (folder.Path != currentPath)
                     {
-                        dragging.gameObject.SetActive(false);
+                        item.gameObject.SetActive(false);
                     }
                 }
-
-                textureHolder _textureHolder = result.gameObject.GetComponent<textureHolder>();
-
-                if (_textureHolder != null && dragging.GetType() != typeof(ProjectWindowContentWeapon))
+                else
                 {
-                    string textureName = _textureHolder.transform.parent.parent.name;
-                    TextureMap textureMap = (TextureMap)System.Enum.Parse(typeof(TextureMap), textureName);
-
-                    SkinDesigner.Weapon.WeaponManager.Instance.SetTexture(textureMap, dragging.HeldTexture);
-                    InspectorManager.Instance.UpdateTextureHolder(textureMap);
                 }
             }
         }
 
         UpdateProject();
-
         isDragging = false;
 
-        dragging.transform.SetParent(projectWindowItemContainer);
-        dragging.transform.localEulerAngles = new Vector3(0, 0, 0);
+        for (int i = 0; i < dragging.Count; i++)
+        {
+            dragging[i].Group.alpha = 1f;
+            dragging[i].Group.interactable = true;
+            dragging[i].Group.blocksRaycasts = true;
 
-        dragging.GetComponent<CanvasGroup>().interactable = true;
-        dragging.GetComponent<CanvasGroup>().blocksRaycasts = true;
-        dragging = null;
+        }
 
+        for (int c = 0; c < items.Count; c++)
+        {
+            if (items[c].IsSelected) RemoveSelected(items[c]);
+        }
+
+        dragging.Clear();
     }
-
     public void OnPointerExit(PointerEventData eventData)
     {
         this.isHighlighted = false;
     }
-
     public void OnPointerEnter(PointerEventData eventData)
     {
         this.isHighlighted = true;
     }
-
+    
     public class ContentItemTextureQueueItem
     {
         public string texture;

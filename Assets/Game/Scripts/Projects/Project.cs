@@ -36,6 +36,11 @@ namespace SkinDesigner.Project
             get { return project_medias.ToArray(); }
             set { project_medias = value.ToList(); }
         }
+
+        public Project(string name)
+        {
+            project_name = name;
+        }
     }
 
     [Serializable]

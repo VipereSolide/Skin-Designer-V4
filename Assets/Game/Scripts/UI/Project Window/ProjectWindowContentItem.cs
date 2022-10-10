@@ -5,86 +5,86 @@ using UnityEngine.UI;
 using UnityEngine;
 
 using SkinDesigner.Textures;
+using FeatherLight.Pro;
 using TMPro;
 
 public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
+    [Header("Item Properties")]
+    [SerializeField] protected new string name;
+    [SerializeField] protected string childrenPath = string.Empty;
+    [SerializeField] protected Sprite background;
+
+    [Header("Behaviour Settings")]
     [SerializeField] protected bool canBeDragged = true;
 
-    [Space()]
-    [SerializeField] protected Image m_itemBackground;
-    [SerializeField] protected Color m_itemBackgroundHighlightColor;
+    [Header("References")]
+    [SerializeField] protected TMP_Text itemNameText;
 
-    [Space()]
-    [SerializeField] protected Sprite m_background;
-    [SerializeField] protected Image m_backgroundImage;
-    [SerializeField] protected Vector3 m_highlightedSize;
-    [SerializeField] protected float m_highlightSpeed;
+    [Space]
+    [SerializeField] protected Image backgroundObject;
+    [SerializeField] protected Image backgroundImageObject;
 
-    [Space()]
-    [SerializeField] protected Color32 m_textDisabledColor = Color.white;
-    [SerializeField] protected Color32 m_textHighlightedColor = Color.white;
-    [SerializeField] protected TMP_Text m_itemNameText;
-    [SerializeField] protected string m_name;
-    [SerializeField] protected string m_childrenPath = string.Empty;
+    [Space]
+    [SerializeField] protected CanvasGroup group;
+
+    [Header("Graphic Settings")]
+    [SerializeField] protected float highlightSpeed;
+    [Space]
+    [SerializeField] protected Color highlightBackgroundColor;
+    [SerializeField] protected Color selectedBackgroundColor;
+
+    [Space]
+    [SerializeField] protected Color32 disabledTextColor = Color.white;
+    [SerializeField] protected Color32 highlightedTextColor = Color.white;
+    [SerializeField] protected Color32 selectedTextColor = Color.white;
+
+    [Space]
+    [SerializeField] protected Vector3 highlightedSize;
 
     protected TextureObject heldTexture = new TextureObject();
+    
+    protected Vector2 lastMousePosition;
+    protected bool canBeDropped = true;
+    protected bool isBeingDropped = false;
 
-    protected Vector2 m_lastMousePosition;
-    protected bool m_canBeDropped = true;
-    protected bool m_isBeingDropped = false;
-
-    protected Transform m_contentContainer;
-    protected Transform m_dropItemContainer;
-    protected bool m_isHighlighted = false;
+    protected Transform contentContainer;
+    protected Transform dropItemContainer;
+    protected bool isHighlighted = false;
     protected bool isSelected = false;
 
     public Action onClick;
 
-    public TextureObject HeldTexture
-    {
-        get { return heldTexture; }
-    }
-
-    public string ChildrenPath
-    {
-        get { return m_childrenPath; }
-    }
-
-    public Sprite Background
-    {
-        get { return m_background; }
-    }
-
-    public string Name
-    {
-        get { return m_name; }
-    }
-
-    public bool CanBeDragged
-    {
-        get { return canBeDragged; }
-    }
-
-    public bool isHighlighted
-    {
-        get { return m_isHighlighted; }
-    }
-
+    public CanvasGroup Group { get => group; }
+    public TextureObject HeldTexture { get => heldTexture; }
+    public string ChildrenPath { get => childrenPath; }
+    public Sprite Background { get => background; }
+    public string Name { get => name; }
+    public bool CanBeDragged { get => canBeDragged; set => canBeDragged = value; }
+    public bool IsHighlighted { get => isHighlighted; }
     public bool IsSelected
-    {
-        get { return isSelected; }
-        set { isSelected = value; if (isSelected) onClick?.Invoke(); }
+    { 
+        get => isSelected;
+        set
+        {
+            isSelected = value;
+
+            if (isSelected)
+            {
+                onClick?.Invoke();
+            }
+        }
     }
 
-    public void SetDirectory(ProjectWindowContentFolder folder)
+    public virtual void SetDirectory(ProjectWindowContentFolder folder)
     {
-        m_childrenPath = folder.Path;
+        transform.SetSiblingIndex(folder.transform.GetSiblingIndex() + 1);
+        childrenPath = folder.Path;
         folder.AddChild(this);
     }
     public void SetDirectory(string folder)
     {
-        m_childrenPath = folder;
+        childrenPath = folder;
 
         foreach (ProjectWindowContentItem item in ProjectWindowManager.Instance.Items)
         {
@@ -107,16 +107,18 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     }
     public void SetData(string _Name, Sprite _Background, string link)
     {
-        this.m_name = _Name;
-        this.m_background = _Background;
+        this.name = _Name;
+        this.background = _Background;
+
         this.heldTexture.TexturePath = link;
+        this.heldTexture.GetFileInfo();
 
         UpdateItem();
     }
     public void SetData(string _Name, Sprite _Background)
     {
-        this.m_name = _Name;
-        this.m_background = _Background;
+        this.name = _Name;
+        this.background = _Background;
 
         UpdateItem();
     }
@@ -126,8 +128,8 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     }
     protected void UpdateItem()
     {
-        m_itemNameText.text = m_name;
-        m_backgroundImage.sprite = m_background;
+        itemNameText.text = name;
+        backgroundImageObject.sprite = background;
     }
     private void OnDisable()
     {
@@ -135,7 +137,7 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     }
     private void HighlightItem(bool _Value)
     {
-        m_isHighlighted = _Value;
+        isHighlighted = _Value;
 
         if (_Value)
         {
@@ -153,18 +155,24 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     }
     protected void UpdateGraphics()
     {
-        if (m_isHighlighted || isSelected)
+        Color targetBackgroundColor = new Color32(255,255,255, 0);
+        Color targetTextColor = disabledTextColor;
+
+        if (isHighlighted)
         {
-            m_backgroundImage.transform.localScale = Vector3.Lerp(m_backgroundImage.transform.localScale, m_highlightedSize, Time.deltaTime * m_highlightSpeed);
-            m_itemNameText.color = m_textHighlightedColor;
-            m_itemBackground.color = m_itemBackgroundHighlightColor;
+            targetBackgroundColor = highlightBackgroundColor;
+            targetTextColor = highlightedTextColor;
         }
-        else
+
+        if (isSelected)
         {
-            m_backgroundImage.transform.localScale = Vector3.Lerp(m_backgroundImage.transform.localScale, Vector3.one, Time.deltaTime * m_highlightSpeed);
-            m_itemNameText.color = m_textDisabledColor;
-            m_itemBackground.color = new Color32(0, 0, 0, 1);
+            targetBackgroundColor = selectedBackgroundColor;
+            targetTextColor = selectedTextColor;
         }
+
+        backgroundImageObject.transform.localScale = Vector3.Lerp(backgroundImageObject.transform.localScale, (isHighlighted || isSelected) ? highlightedSize : Vector3.one, Time.deltaTime * highlightSpeed);
+        backgroundObject.color = Color.Lerp(backgroundObject.color, targetBackgroundColor, Time.deltaTime * highlightSpeed);
+        itemNameText.color = targetTextColor;
     }
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -174,13 +182,28 @@ public class ProjectWindowContentItem : MonoBehaviour, IPointerEnterHandler, IPo
     {
         HighlightItem(false);
     }
-    void Update()
+    private void CheckIsHeldTextureUpToDate()
     {
+        if (heldTexture.HasTextureFileChanged())
+        {
+            // Texture Has Changed.
+            Debug.Log("Texture has Changed");
+            Texture newBackground = heldTexture.GetTextureFromPath();
+            heldTexture.GetFileInfo();
+            
+            background = TextureHelper.ToSprite((Texture2D)newBackground);
+
+            UpdateItem();
+        }
+    }
+    private void Update()
+    {
+        CheckIsHeldTextureUpToDate();
         UpdateGraphics();
 
         if (Input.GetMouseButtonDown(0))
         {
-            m_lastMousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            lastMousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         }
     }
 }

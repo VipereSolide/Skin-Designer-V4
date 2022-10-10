@@ -7,6 +7,8 @@ using SkinDesigner.SelectTexturesWindow;
 using SkinDesigner.SkinSystem;
 using SkinDesigner.Textures;
 using SkinDesigner.Weapon;
+
+using FeatherLight.Pro.Console;
 using FeatherLight.Pro;
 
 namespace SkinDesigner.Inspector
@@ -22,7 +24,7 @@ namespace SkinDesigner.Inspector
         private textureHolder[] holders;
 
         [SerializeField]
-        private colorPickerObject[] colorPickers;
+        private CanvasGroup inspectorContent;
 
         private WeaponObject currentObject;
         private int waitingHolder;
@@ -31,67 +33,53 @@ namespace SkinDesigner.Inspector
         {
             Instance = this;
         }
+        private void Start()
+        {
+            CanvasGroupHelper.SetActive(inspectorContent, false);
+        }
 
         public void SetInspectedWeapon(SkinSystem.Weapon weapon)
         {
-            Weapon.WeaponManager manager = Weapon.WeaponManager.Instance;
+            WeaponManager manager = WeaponManager.Instance;
 
             manager.InstantiateWeapon(weapon);
             currentObject = manager.GetWeaponByWeaponType(weapon);
+            CanvasGroupHelper.SetActive(inspectorContent, true);
 
+            ClearTextureHolders();
             UpdateAllTextureHolders();
         }
-
-        public virtual void ResetTextureHolder(TextureMap textureMap)
+        public void ClearTextureHolders()
         {
-
+            foreach(var holder in holders)
+            {
+                holder.TrashTexture();
+            }
         }
-
-        public virtual void ResetAllTextureHolders()
-        {
-
-        }
-
-        public virtual void SetTextureHolder(TextureMap textureMap, Texture texture)
-        {
-
-        }
-
-        public virtual void SetAllTextureHolders(Texture texture)
-        {
-
-        }
-
         public void UpdateTextureHolder(TextureMap textureMap)
         {
             if (currentObject == null)
             {
-                Debug.LogError("Couldn't Update the texture holders as there is no currentObject assigned.");
+                Console.LogError("Inspector > Couldn't Update the texture holders as there is no currentObject assigned.");
                 return;
             }
 
-            MeshRenderer renderer = currentObject.Renderer;
-            Material material = renderer.material;
-
             int index = Environment.TextureMapToInt(textureMap);
+            TextureObject correspondingMapTexture = WeaponManager.Instance.CurrentWeapon.WeaponTextures.TextureObjects[index];
 
-            Texture2D texture = new Texture2D(2, 2);
-            texture = (Texture2D)material.GetTexture(Environment.GetTextureMapRealName(textureMap));
-
-            if (texture != null)
+            if (correspondingMapTexture == null)
             {
-                texture = TextureHelper.Scaled(texture, 64, 64);
-                texture.Apply();
+                Console.LogWarning("Inspector > The corresponding texture object was null.");
+                return;
             }
 
-            holders[index].SetHeldTexture(texture);
+            holders[index].SetHeldTexture(correspondingMapTexture.TexturePath);
         }
-
         public void UpdateAllTextureHolders()
         {
             if (currentObject == null)
             {
-                Debug.LogError("Couldn't Update the texture holders as there is no currentObject assigned.");
+                Console.LogError("Inspector > Couldn't Update the texture holders as there is no currentObject assigned.");
                 return;
             }
 
@@ -101,18 +89,15 @@ namespace SkinDesigner.Inspector
                 UpdateTextureHolder(map);
             }
         }
-
         public void SetTextureViaTextureWindow(int holderIndex)
         {
             waitingHolder = holderIndex;
 
             selectTexturesWindow.Call(holders[holderIndex]);
         }
-
-        [HideInInspector]
         public void SetTextureByMediaItem()
         {
-            TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(waitingHolder);
+            TextureMap map = Environment.IntToTextureMap(waitingHolder);
             WeaponManager manager = WeaponManager.Instance;
 
             Texture texture = selectTexturesWindow.Texture;
@@ -120,11 +105,33 @@ namespace SkinDesigner.Inspector
 
             if (texture == null || selectTexturesWindow.CurrentTextureLink == "NULL")
             {
-                manager.RemoveTexture(map);
+                Console.Log($"Inspector > Removing texture map {map}...");
+
+                try
+                {
+                    Console.Log($"Inspector > Successfuly removed texture map {map}!");
+                    manager.RemoveTexture(map);
+                }
+                catch (System.Exception e)
+                {
+                    Console.LogError($"Inspector > Couldn't remove texture map {map}!");
+                    Console.LogError($"Inspector > {e}");
+                }
             }
             else
             {
-                manager.SetTexture(map, new TextureObject(selectTexturesWindow.Texture, textureLink));
+                Console.Log($"Inspector > Setting used texture by sending it to the WeaponManager...\nFile Path: {textureLink}.\nTexture Size: {((Texture2D)texture).EncodeToPNG().Length}");
+                
+                try
+                {
+                    Console.Log($"Inspector > Texture was successfuly sent to the WeaponManager!\nWaiting for WeaponManager receive message...");
+                    manager.SetTexture(map, new TextureObject(selectTexturesWindow.Texture, textureLink));
+                }
+                catch(System.Exception e)
+                {
+                    Console.LogError($"Inspector > Couldn't send texture to Weapon Manager!");
+                    Console.LogError($"Inspector > {e}");
+                }
             }
 
             UpdateAllTextureHolders();

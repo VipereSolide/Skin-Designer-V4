@@ -8,10 +8,20 @@ public class ProjectWindowContentFolder : ProjectWindowContentItem, IPointerClic
     [Header("Folder Settings")]
     [SerializeField] private List<ProjectWindowContentItem> children = new List<ProjectWindowContentItem>();
     [SerializeField] private string m_path = string.Empty;
+    [SerializeField] private ProjectWindowContentFolder returnFolder;
+
+    public ProjectWindowContentFolder ReturnFolder { get => returnFolder; set => returnFolder = value; }
 
     public ProjectWindowContentItem[] Children
     {
         get { return children.ToArray(); }
+    }
+
+    public override void SetDirectory(ProjectWindowContentFolder folder)
+    {
+        base.SetDirectory(folder);
+        returnFolder.SetChildrenPath(m_path);
+        returnFolder.SetPath(childrenPath);
     }
 
     public void AddChild(ProjectWindowContentItem item)
@@ -26,7 +36,7 @@ public class ProjectWindowContentFolder : ProjectWindowContentItem, IPointerClic
 
     public void SetName(string name)
     {
-        this.m_name = name;
+        this.name = name;
         UpdateItem();
     }
 
@@ -38,7 +48,7 @@ public class ProjectWindowContentFolder : ProjectWindowContentItem, IPointerClic
 
     public void SetChildrenPath(string path)
     {
-        this.m_childrenPath = path;
+        this.childrenPath = path;
         UpdateItem();
     }
 
@@ -58,7 +68,7 @@ public class ProjectWindowContentFolder : ProjectWindowContentItem, IPointerClic
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.clickCount > 1)
+        if (isSelected && eventData.clickCount > 1)
         {
             ProjectWindowManager.Instance.UpdatePath(this);
         }

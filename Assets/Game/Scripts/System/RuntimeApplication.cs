@@ -11,5 +11,10 @@ namespace SkinDesigner.SkinSystem
         {
             Application.Quit();
         }
+
+        public void OpenProjectFolder()
+        {
+            Application.OpenURL(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + "/Skillwarz/Skin Designer/Projects/");
+        }
     }
 }

@@ -1,12 +1,8 @@
 using System.Collections.Generic;
-using System.Collections;
 using System.Linq;
 using System.IO;
-
 using UnityEngine;
-
 using TMPro;
-
 using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
 using SkinDesigner.Weapon;
@@ -17,11 +13,8 @@ namespace SkinDesigner.Project
     {
         public static ProjectManager Instance;
 
-        [SerializeField] private Project outputProject;
-        [SerializeField] private TMP_Text testText;
         [SerializeField] private ProjectWindowManager projectWindowManager;
         [SerializeField] private TMP_Text projectNameText;
-        [SerializeField] private string projectPath;
 
         private int mediaIdCounter;
         private Project currentProject = null;
@@ -30,8 +23,6 @@ namespace SkinDesigner.Project
             get { return currentProject; }
             set { currentProject = value; }
         }
-
-        private List<ProjectWindowContentItem> currentProjectContentItems = new List<ProjectWindowContentItem>();
 
         private void Awake()
         {
@@ -77,10 +68,11 @@ namespace SkinDesigner.Project
                 projectWeapons.Add(output);
             }
 
-            Project project = new Project();
+            Project project = new Project(project_name);
+
             project.ProjectMedia = projectMedias.ToArray();
-            project.ProjectName = project_name;
             project.WeaponData = projectWeapons.ToArray();
+
             currentProject = project;
         }
 
@@ -238,16 +230,16 @@ namespace SkinDesigner.Project
             return media;
         }
 
-        public void SaveProjectWithInputField(TMP_InputField field)
+        public void CreateProject(TMP_InputField field)
         {
-            Project newCurrent = new Project();
-            newCurrent.ProjectName = field.text;
-
+            Project newProject = new Project(field.text);
             string directoryPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + "/Skillwarz/Skin Designer/Projects/";
-            File.WriteAllText(directoryPath + field.text + ".json", GetProjectInString(newCurrent));
+            File.WriteAllText(directoryPath + field.text + ".json", GetProjectInString(newProject));
+            
+            currentProject = newProject;
+            UpdateProject();
 
-            currentProject = newCurrent;
-            ProjectManagerUI.Instance.SelectProject(currentProject);
+            ProjectManagerUI.Instance.HasSelectedProject();
         }
 
         public void SaveCurrentProject()
