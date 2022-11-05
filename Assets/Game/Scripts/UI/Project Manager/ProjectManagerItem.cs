@@ -1,5 +1,7 @@
-using System;
+using System.Collections.Generic;
+using System.Collections;
 using System.IO;
+using System;
 
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,7 +9,9 @@ using UnityEngine;
 
 using SkinDesigner.Textures;
 using SkinDesigner.Project;
+
 using FeatherLight.Pro;
+
 using TMPro;
 
 public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
@@ -84,7 +88,15 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
 
         m_name = info.ProjectName;
 
-        if (info.WeaponData.Length > 0)
+        StartCoroutine(LoadData());
+
+        UpdateItem();
+    }
+
+    private IEnumerator LoadData()
+    {
+        /*
+         if (info.WeaponData.Length > 0)
         {
             string texturePath = info.WeaponData[0].WeaponTextures.Albedo;
 
@@ -110,8 +122,8 @@ public class ProjectManagerItem : MonoBehaviour, IPointerEnterHandler, IPointerE
             backgroundTexture.Apply();
             m_background = backgroundTexture.ToSprite();
         }
-
-        UpdateItem();
+         */
+        yield return null;
     }
 
     private void UpdateItem()

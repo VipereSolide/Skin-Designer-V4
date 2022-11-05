@@ -230,6 +230,7 @@ public class ProjectWindowPopupItem : MonoBehaviour, IPointerEnterHandler, IPoin
         if (ProjectWindowManager.Instance.Selected != null)
         {
             ExecuteOnSelected();
+            return;
         }
 
         Execute();

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.IO;
-using System;
 
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -12,10 +11,14 @@ using SkinDesigner.SkinSystem;
 using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
 using SkinDesigner.Weapon;
-using FeatherLight.Pro;
 using SkinDesigner;
+
 using TMPro;
 using SFB;
+
+using FeatherLight.Pro.Console;
+using FeatherLight.Pro;
+using UnityEngine.Events;
 
 public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -35,6 +38,10 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     [Header("Dragging")]
     [SerializeField] private DraggingItemGhost draggingItemGhost;
     [SerializeField] private ScrollRect scrollRect;
+
+    [Space]
+    [SerializeField] public UnityEvent<ProjectWindowContentItem[]> onStartDragging;
+    [SerializeField] public UnityEvent<ProjectWindowContentItem[]> onStopDragging;
 
     [Header("Items")]
     [SerializeField] private ProjectWindowContentItem projectWindowItemPrefab;
@@ -221,7 +228,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         items.Add(instantiated);
     }
-    public void CreateMedia(string name, Sprite texture, Action onClick)
+    public void CreateMedia(string name, Sprite texture, System.Action onClick)
     {
         ProjectWindowContentItem instantiated = Instantiate(projectWindowItemPrefab, itemContainer);
         instantiated.SetData(name, texture);
@@ -352,7 +359,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         if (manager.CurrentWeapon == null)
         {
-            Debug.Log($"Project > Current weapon is null. Destroying item \"{item.Name}\" none the less...");
+            Debug.Log($"Project > Current weapon is null. Destroying item \"{item.Name}\" nonetheless...");
             Destroy(item.gameObject);
             items.Remove(item);
 
@@ -361,34 +368,11 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
 
         if (manager.CurrentTextures == null)
         {
-            Debug.Log($"Project > Current weapon textures are null. Destroying item \"{item.Name}\" none the less...");
+            Debug.Log($"Project > Current weapon textures are null. Destroying item \"{item.Name}\" nonetheless...");
             Destroy(item.gameObject);
             items.Remove(item);
-         
+
             return;
-        }
-
-        for (int i = 0; i < manager.CurrentTextures.Length; i++)
-        {
-            TextureObject held = item.HeldTexture;
-            TextureMap map = SkinDesigner.SkinSystem.Environment.IntToTextureMap(i);
-
-            Debug.Log($"Project > Trying to destruct texture \"{map}\".");
-
-            if ((held.TexturePath != string.Empty && !string.IsNullOrWhiteSpace(held.TexturePath)) || held.Texture != null)
-            {
-                Debug.Log($"Project > Item's held texture successfuly found.");
-                
-                if (manager.CurrentTextures[i].TexturePath == held.TexturePath || manager.CurrentTextures[i].Texture == held.Texture)
-                {
-                    Debug.Log($"Project > Item's held texture correspond to the \"{map}\" map.\nProceeding to map destruction...");
-                    manager.RemoveTexture(map);
-                }
-            }
-            else
-            {
-                Debug.Log($"Project > The item's held texture had no texture path!");
-            }
         }
 
         Destroy(item.gameObject);
@@ -507,7 +491,7 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             return;
         }
 
-        bool clickMouseButton = Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1);
+        bool clickMouseButton = Input.GetMouseButtonUp(0);
         bool clickMouseButtonHeld = Input.GetMouseButton(0);
         bool isClickingNowhere = (clickMouseButton && highlighted == null);
 
@@ -685,6 +669,11 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
             dragging[i].Group.interactable = false;
             dragging[i].Group.blocksRaycasts = false;
         }
+
+        if (dragging.Count > 0)
+        {
+            onStartDragging?.Invoke(dragging.ToArray());
+        }
     }
     public void StopDragging()
     {
@@ -699,61 +688,42 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
         // 0 = texture holder; 1 = folder;
         int itemType = 0;
         ProjectWindowContentFolder folder = null;
-        textureHolder textureHolder = null;
 
         if (results.Count > 0)
         {
             foreach (RaycastResult result in results)
             {
-                ProjectWindowContentFolder _folder = result.gameObject.GetComponent<ProjectWindowContentFolder>();
-                textureHolder _textureHolder = result.gameObject.GetComponent<textureHolder>();
+                folder = result.gameObject.GetComponent<ProjectWindowContentFolder>();
 
                 // if we hit a folder.
-                if (_folder != null)
+                if (folder != null)
                 {
                     itemType = 1;
-                    folder = _folder;
                     break;
-                }
-
-                // If we hit a texture holder.
-                else if (_textureHolder != null)
-                {
-                    itemType = 0;
-                    textureHolder = _textureHolder;
-                    break;
-                }
-
-                else
-                {
-                    itemType = -1;
-                    break;
-                }
-            }
-
-            foreach (ProjectWindowContentItem item in dragging)
-            {
-                if (itemType == 0 && item.GetType() != typeof(ProjectWindowContentWeapon))
-                {
-                    string textureName = textureHolder.transform.parent.parent.name;
-                    TextureMap textureMap = (TextureMap)Enum.Parse(typeof(TextureMap), textureName);
-                    WeaponManager.Instance.SetTexture(textureMap, item.HeldTexture);
-                    InspectorManager.Instance.UpdateTextureHolder(textureMap);
-                }
-                else if (itemType == 1)
-                {
-                    item.SetDirectory(folder);
-
-                    if (folder.Path != currentPath)
-                    {
-                        item.gameObject.SetActive(false);
-                    }
-                }
-                else
-                {
                 }
             }
         }
+
+        if (itemType == 1)
+        {
+            foreach (ProjectWindowContentItem item in dragging)
+            {
+                item.SetDirectory(folder);
+
+                if (folder.Path != currentPath)
+                {
+                    item.gameObject.SetActive(false);
+                }
+            }
+        }
+        else
+        {
+            if (dragging.Count > 0)
+            { 
+                onStopDragging?.Invoke(dragging.ToArray());
+            }
+        }
+
 
         UpdateProject();
         isDragging = false;
@@ -781,7 +751,27 @@ public class ProjectWindowManager : MonoBehaviour, IPointerEnterHandler, IPointe
     {
         this.isHighlighted = true;
     }
-    
+    public void EditExternally(ProjectWindowContentItem[] items)
+    {
+        Debug.Log("hi?");
+        foreach (ProjectWindowContentItem item in items)
+        {
+            if (item.GetType() == typeof(ProjectWindowContentWeapon) || item.GetType() == typeof(ProjectWindowContentFolder))
+            {
+                continue;
+            }
+
+            if (item.HeldTexture != null)
+            {
+                Application.OpenURL(item.HeldTexture.TexturePath);
+            }
+        }
+    }
+    public void EditExternally()
+    {
+        EditExternally(Selected);
+    }
+
     public class ContentItemTextureQueueItem
     {
         public string texture;

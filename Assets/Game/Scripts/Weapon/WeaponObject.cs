@@ -1,38 +1,50 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections;
+
 using UnityEngine;
+
 using SkinDesigner.SkinSystem;
 using SkinDesigner.Textures;
+using SkinDesigner;
+
+using NaughtyAttributes;
+using FeatherLight.Pro.Console;
 
 namespace SkinDesigner.Weapon
 {
     public class WeaponObject : MonoBehaviour
     {
-        [SerializeField]
-        private WeaponTextureData m_weaponTextures;
+        [Header("Behavior")]
 
         [SerializeField]
-        private SkinSystem.MaterialMetallicMode m_materialMetallicMode;
+        private WeaponProfile mainProfile;
 
         [SerializeField]
-        private SkinDesigner.SkinSystem.Weapon m_weapon;
+        private SkinSystem.Weapon weaponType;
 
         [SerializeField]
-        private bool m_hasMultipleParts = false;
+        private bool disableOnStart = true;
+
+        [Space]
 
         [SerializeField]
-        private WeaponSubRenderer[] m_weaponSubRenderers;
+        private bool hasMultipleParts = false;
 
         [SerializeField]
-        private bool m_disableOnStart = true;
+        [ShowIf("hasMultipleParts")]
+        private WeaponProfile[] weaponSubRenderers;
 
-        [SerializeField]
-        private Texture2D[] m_startTextures = new Texture2D[7];
 
         private MeshRenderer m_renderer;
-
         private bool hasSetStartTextures = false;
 
+        public WeaponProfile MainProfile
+        {
+            get
+            {
+                return mainProfile;
+            }
+        }
         public MeshRenderer Renderer
         {
             get
@@ -40,52 +52,39 @@ namespace SkinDesigner.Weapon
                 return m_renderer;
             }
         }
-
         public MaterialMetallicMode MaterialMetallicMode
         {
             get
             {
-                return m_materialMetallicMode;
+                return mainProfile.MaterialMetallicMode;
             }
         }
-
         public WeaponTextureData WeaponTextures
         {
             get
             {
-                return m_weaponTextures;
+                return mainProfile.Textures;
             }
         }
-
-        public SkinDesigner.SkinSystem.Weapon Weapon
+        public SkinSystem.Weapon Weapon
         {
             get
             {
-                return m_weapon;
+                return weaponType;
             }
         }
-
-        public WeaponSubRenderer[] WeaponSubRenderers
+        public WeaponProfile[] WeaponSubRenderers
         {
             get
             {
-                return m_weaponSubRenderers;
+                return weaponSubRenderers;
             }
         }
-
         public bool HasMultipleParts
         {
             get
             {
-                return m_hasMultipleParts;
-            }
-        }
-
-        public Texture2D[] StartTextures
-        {
-            get
-            {
-                return m_startTextures;
+                return hasMultipleParts;
             }
         }
 
@@ -93,123 +92,164 @@ namespace SkinDesigner.Weapon
         {
             m_renderer = GetComponent<MeshRenderer>();
         }
-
         public void Start()
         {
-            if (!hasSetStartTextures)
+            mainProfile.Textures.UpdateStartTextures(mainProfile.Renderer);
+
+            for (int i = 0; i < WeaponSubRenderers.Length; i++)
             {
-                m_startTextures = Environment.GetMaterialTextures(m_renderer.material);
-
-                if (m_hasMultipleParts)
-                {
-                    for (int i = 0; i < m_weaponSubRenderers.Length; i++)
-                    {
-                        // Updates the start textures of the skin.
-                        Texture2D[] _rendererMaterialTextures = SkinSystem.Environment.GetMaterialTextures(m_weaponSubRenderers[i].Renderer.material);
-                        m_weaponSubRenderers[i].StartTextureData = new WeaponTextureData(new TextureObject[7]
-                        {
-                            new TextureObject(_rendererMaterialTextures[0]),
-                            new TextureObject(_rendererMaterialTextures[1]),
-                            new TextureObject(_rendererMaterialTextures[2]),
-                            new TextureObject(_rendererMaterialTextures[3]),
-                            new TextureObject(_rendererMaterialTextures[4]),
-                            new TextureObject(_rendererMaterialTextures[5]),
-                            new TextureObject(_rendererMaterialTextures[6])
-                        });
-                    }
-                }
-
-                hasSetStartTextures = true;
+                weaponSubRenderers[i].Textures.UpdateStartTextures(weaponSubRenderers[i].Renderer);
             }
 
-            if (m_disableOnStart)
+            UpdateWeaponObject();
+
+            if (disableOnStart)
+            {
                 gameObject.SetActive(false);
+            }
         }
 
-        public void SetTextures(Texture2D[] textures)
+        private void SetWeaponProfileTexture(WeaponProfile profile, TextureMap map, ProjectWindowContentItem item, bool autoUpdate = true)
         {
-            Environment.SetMaterialTextures(Renderer.material, textures);
-        }
+            int index = Environment.TextureMapToInt(map);
 
-        public void SetTextures(TextureObject[] textures)
-        {
-            List<Texture2D> textureList = new List<Texture2D>();
+            profile.Textures.IsUsingDefault[index] = false;
+            profile.Textures.CustomTextures[index] = item;
 
-            for (int i = 0; i < textures.Length; i++)
+            if (autoUpdate)
             {
-                this.m_weaponTextures.TextureObjects[i] = textures[i];
-                TextureObject obj = textures[i];
+                UpdateWeaponMap(map);
+            }
+        }
+        private void RemoveWeaponProfileTexture(WeaponProfile profile, TextureMap map, bool autoUpdate = true)
+        {
+            int index = Environment.TextureMapToInt(map);
 
-                if (obj.TexturePath == "NULL")
+            profile.Textures.IsUsingDefault[index] = true;
+            profile.Textures.CustomTextures[index] = null;
+
+            if (autoUpdate)
+            {
+                UpdateWeaponMap(map);
+            }
+        }
+        private void UpdateWeaponProfileRenderer(TextureMap map, WeaponProfile profile)
+        {
+            string mapName = Environment.GetTextureMapRealName(map);
+            int mapIndex = Environment.TextureMapToInt(map);
+
+            TextureObject textureObject = profile.Textures.DefaultTextureObjects[mapIndex];
+            Texture usedTexture = textureObject.Texture;
+
+            if (profile.Textures.IsUsingDefault[mapIndex])
+            {
+                if (usedTexture == null && textureObject.Texture != null)
                 {
-                    textureList.Add(m_startTextures[i]);
-                }
-                else
-                {
-                    textureList.Add((Texture2D)obj.GetTextureFromPath());
+                    usedTexture = textureObject.GetTextureFromPath();
                 }
             }
+            else
+            {
+                textureObject = profile.Textures.CustomTextures[mapIndex].HeldTexture;
 
-            Environment.SetMaterialTextures(Renderer.material, textureList.ToArray());
+                if (textureObject.Texture == null)
+                {
+                    textureObject.GetTextureFromPath();
+                }
+
+                usedTexture = textureObject.Texture;
+            }
+
+            profile.Renderer.material.SetTexture(mapName, usedTexture);
         }
+
+        public void Set(TextureMap map, ProjectWindowContentItem item, bool autoUpdate = true)
+        {
+            SetWeaponProfileTexture(mainProfile, map, item, autoUpdate);
+        }
+        public void Remove(TextureMap map, bool autoUpdate = true)
+        {
+            RemoveWeaponProfileTexture(mainProfile, map, autoUpdate);
+        }
+        public void SetPart(int partIndex, TextureMap map, ProjectWindowContentItem item, bool autoUpdate = true)
+        {
+            SetWeaponProfileTexture(weaponSubRenderers[partIndex], map, item, autoUpdate);
+        }
+        public void RemovePart(int partIndex, TextureMap map, bool autoUpdate = true)
+        {
+            RemoveWeaponProfileTexture(weaponSubRenderers[partIndex], map, autoUpdate);
+        }
+
+        public void UpdateWeaponMap(TextureMap map)
+        {
+            UpdateWeaponProfileRenderer(map, mainProfile);
+        }
+        public void UpdatePartsMap(TextureMap map, int partIndex)
+        {
+            UpdateWeaponProfileRenderer(map, weaponSubRenderers[partIndex]);
+        }
+        public void UpdateWeaponObject()
+        {
+            for(int i = 0; i < 7; i++)
+            {
+                UpdateWeaponMap(Environment.IntToTextureMap(i));
+            }
+        }
+
 
         [System.Serializable]
-        public class WeaponSubRenderer
+        public class WeaponProfile
         {
-            [SerializeField]
-            private MeshRenderer m_renderer;
+            [Header("Profile")]
 
             [SerializeField]
-            private SkinSystem.MaterialMetallicMode m_materialMetallicMode;
+            private string name;
 
             [SerializeField]
-            private WeaponTextureData m_textureData;
+            private MaterialMetallicMode materialMetallicMode;
 
             [SerializeField]
-            private WeaponTextureData m_startTextureData;
+            private WeaponTextureData weaponTextures;
 
+            [Header("References")]
+
+            [SerializeField]
+            private MeshRenderer renderer;
+
+            public string Name
+            {
+                get
+                {
+                    return name;
+                }
+            }
             public MeshRenderer Renderer
             {
                 get
                 {
-                    return m_renderer;
+                    return renderer;
                 }
             }
-
-            public SkinSystem.MaterialMetallicMode MaterialMetallicMode
+            public MaterialMetallicMode MaterialMetallicMode
             {
                 get
                 {
-                    return m_materialMetallicMode;
+                    return materialMetallicMode;
                 }
             }
-
-            public WeaponTextureData TextureData
+            public WeaponTextureData Textures
             {
                 get
                 {
-                    return m_textureData;
+                    return weaponTextures;
                 }
             }
 
-            public WeaponTextureData StartTextureData
+            public WeaponProfile(MeshRenderer renderer, WeaponTextureData weaponTextures, MaterialMetallicMode metallicMode = MaterialMetallicMode.M)
             {
-                get
-                {
-                    return m_startTextureData;
-                }
-
-                set
-                {
-                    this.m_startTextureData = value;
-                }
-            }
-
-            public WeaponSubRenderer(MeshRenderer _Renderer, WeaponTextureData _TextureData, SkinSystem.MaterialMetallicMode _MetallicMode = SkinSystem.MaterialMetallicMode.M)
-            {
-                this.m_renderer = _Renderer;
-                this.m_textureData = _TextureData;
-                this.m_materialMetallicMode = _MetallicMode;
+                this.renderer = renderer;
+                this.weaponTextures = weaponTextures;
+                materialMetallicMode = metallicMode;
             }
         }
 
@@ -217,29 +257,75 @@ namespace SkinDesigner.Weapon
         public class WeaponTextureData
         {
             [SerializeField]
-            private TextureObject[] m_textureObjects;
+            private bool[] isUsingDefault = new bool[7] { true , true , true , true , true , true , true };
 
-            public TextureObject[] TextureObjects
+            [SerializeField]
+            private ProjectWindowContentItem[] customTextures;
+
+            [SerializeField]
+            private TextureObject[] defaultTextureObjects;
+
+            public bool[] IsUsingDefault
             {
                 get
                 {
-                    return m_textureObjects;
+                    return isUsingDefault;
+                }
+                set
+                {
+                    isUsingDefault = value;
+                }
+            }
+            public TextureObject[] DefaultTextureObjects
+            {
+                get
+                {
+                    return defaultTextureObjects;
                 }
 
                 set
                 {
-                    m_textureObjects = value;
+                    defaultTextureObjects = value;
+                }
+            }
+            public ProjectWindowContentItem[] CustomTextures
+            {
+                get
+                {
+                    return customTextures;
+                }
+
+                set
+                {
+                    customTextures = value;
                 }
             }
 
             public WeaponTextureData()
             {
-                this.m_textureObjects = new TextureObject[7];
+                defaultTextureObjects = new TextureObject[7];
+                customTextures = new ProjectWindowContentItem[7];
+            }
+            public WeaponTextureData(TextureObject[] startTextures)
+            {
+                defaultTextureObjects = startTextures;
+                customTextures = new ProjectWindowContentItem[7];
+            }
+            public WeaponTextureData(TextureObject[] startTextures, ProjectWindowContentItem[] items)
+            {
+                defaultTextureObjects = startTextures;
+                customTextures = items;
             }
 
-            public WeaponTextureData(TextureObject[] _TextureObjects)
+            public void UpdateStartTextures(MeshRenderer renderer)
             {
-                this.m_textureObjects = _TextureObjects;
+                defaultTextureObjects = new TextureObject[7];
+
+                for (int i = 0; i < 7; i++)
+                {
+                    defaultTextureObjects[i] = new TextureObject();
+                    defaultTextureObjects[i].Texture = renderer.sharedMaterial.GetTexture(Environment.GetTextureMapRealName(Environment.IntToTextureMap(i)));
+                }
             }
         }
     }

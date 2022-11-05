@@ -24,6 +24,12 @@ namespace FeatherLight.Pro
 
             for(int i = 0; i < keys.Length; i++)
             {
+                if (i == keys.Length - 1 && areKeyPressed)
+                {
+                    areKeyPressed = Input.GetKeyDown(keys[i]);
+                    break;
+                }
+
                 if (!Input.GetKey(keys[i]))
                 {
                     areKeyPressed = false;
