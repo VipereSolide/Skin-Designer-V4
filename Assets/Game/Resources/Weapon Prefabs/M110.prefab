@@ -19,7 +19,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6143452943121123235
 Transform:
   m_ObjectHideFlags: 0
@@ -29,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 6143452943121123244}
   m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0.75, y: -1, z: 0}
-  m_LocalScale: {x: 3.1, y: 3.1, z: 3.1}
+  m_LocalScale: {x: 3.8, y: 3.8, z: 3.8}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -109,32 +109,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54f97649dda16654bb642c5ceb0385c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_weaponTextures:
-    m_textureObjects:
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-    - m_texturePath: 
-      m_texture: {fileID: 0}
-  m_materialMetallicMode: 0
-  m_weapon: 11
-  m_hasMultipleParts: 0
-  m_weaponSubRenderers: []
-  m_disableOnStart: 0
-  m_startTextures:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  mainProfile:
+    name: M110
+    materialMetallicMode: 0
+    weaponTextures:
+      isUsingDefault: 01010101010101
+      customTextures:
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      - {fileID: 0}
+      defaultTextureObjects:
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+      - m_texturePath: 
+        m_texture: {fileID: 0}
+    renderer: {fileID: 6143452943121123245}
+  weaponType: 11
+  disableOnStart: 1
+  hasMultipleParts: 0
+  weaponSubRenderers: []

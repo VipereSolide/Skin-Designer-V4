@@ -4,8 +4,11 @@ using System.Collections;
 using UnityEngine.Events;
 using UnityEngine;
 
+using SkinDesigner.Inspector;
 using SkinDesigner.Textures;
 using SkinDesigner.Project;
+
+using FeatherLight.Pro.Console;
 using FeatherLight.Pro;
 
 namespace SkinDesigner.SelectTexturesWindow
@@ -21,32 +24,25 @@ namespace SkinDesigner.SelectTexturesWindow
         [SerializeField]
         private TexturesWindowMediaItem itemPrefab;
 
-        private textureHolder currentCaller;
+        private InspectorHolder currentCaller;
         private List<TexturesWindowMediaItem> spawnedPrefabs = new List<TexturesWindowMediaItem>();
 
         private bool isOpened = false;
-        private Texture currentTexture;
-
-        public Texture Texture
-        {
-            get { return currentTexture; }
-        }
-
-        private string currentTextureLink;
-
-        public string CurrentTextureLink
-        {
-            get { return currentTextureLink; }
-        }
+        private TexturesWindowMediaItem current;
 
         public bool IsOpened
         {
             get { return isOpened; }
         }
 
+        public TexturesWindowMediaItem Current
+        {
+            get { return current; }
+        }
+
         public UnityEvent onItemSelected;
 
-        public void Call(textureHolder caller)
+        public void Call(InspectorHolder caller)
         {
             currentCaller = caller;
 
@@ -57,7 +53,7 @@ namespace SkinDesigner.SelectTexturesWindow
 
         public void Close()
         {
-            currentTexture = null;
+            current = null;
             CanvasGroupHelper.SetActive(windowCanvasGroup, false);
             isOpened = false;
         }
@@ -81,13 +77,10 @@ namespace SkinDesigner.SelectTexturesWindow
                 if (media.GetType() == typeof(ProjectWindowContentFolder) || media.GetType() == typeof(ProjectWindowContentWeapon))
                     continue;
 
-                Sprite texture = media.Background;
-                string name = media.Name;
-
                 TexturesWindowMediaItem item = Instantiate(itemPrefab, itemContainer);
-                item.CreateItem(this);
-                item.SetItemData(name, texture, media.HeldTexture.TexturePath);
 
+                item.CreateItem(this);
+                item.SetItemData(media);
                 spawnedPrefabs.Add(item);
             }
         }
@@ -95,19 +88,12 @@ namespace SkinDesigner.SelectTexturesWindow
         public void SetItem(TexturesWindowMediaItem item)
         {
             if (currentCaller == null)
+            {
+                Console.LogError($"Textures Window > You cannot set an item if there is no inspector holder active.");
                 return;
-
-            if (!item.IsItemNone)
-            {
-                currentTexture = new TextureObject(item.TextureLink).GetTextureFromPath();
-                currentTextureLink = item.TextureLink;
-            }
-            else
-            {
-                currentTexture = null;
-                currentTextureLink = "NULL";
             }
             
+            currentCaller.Set(item.Item);
             CanvasGroupHelper.SetActive(windowCanvasGroup, false);
 
             onItemSelected.Invoke();

@@ -1,31 +1,58 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Collections;
+
 using UnityEngine;
-using SkinDesigner.Weapon;
+
 using SkinDesigner.SkinSystem;
+using SkinDesigner.Inspector;
+using SkinDesigner.Weapon;
+
+using FeatherLight.Pro.Console;
+using FeatherLight.Pro;
 
 namespace SkinDesigner.Textures
 {
     public class ApplyTexturesOnChange : MonoBehaviour
     {
-        [SerializeField] private textureHolder m_albedo;
-        [SerializeField] private textureHolder m_detail;
-        [SerializeField] private textureHolder m_emission;
-        [SerializeField] private textureHolder m_height;
-        [SerializeField] private textureHolder m_metallic;
-        [SerializeField] private textureHolder m_normal;
-        [SerializeField] private textureHolder m_occlusion;
+        [SerializeField] private InspectorHolder[] inspectorHolders;
 
         private void Start()
         {
-            m_albedo.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Albedo, m_albedo.Texture, true));
-            m_detail.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Detail, m_detail.Texture, true));
-            m_emission.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Emission, m_emission.Texture, true));
-            m_height.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Height, m_height.Texture, true));
-            m_metallic.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Metallic, m_metallic.Texture, true));
-            m_normal.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Normal, m_normal.Texture, true));
-            m_occlusion.onSelectTexture.AddListener(() => WeaponManager.Instance.SetTexture(TextureMap.Occlusion, m_occlusion.Texture, true));
+            // Attach a texture change event to every inspector holders.
+            // This way, the weapon texture will update as the inspector holders
+            // get a new texture.
+            for (int i = 0; i < inspectorHolders.Length; i++)
+            {
+                inspectorHolders[i].onTextureChanged.AddListener((TextureObject t) => SetTextureByHolderIndex(t, Environment.IntToTextureMap(i), i));
+            }
         }
 
+        private void OnApplicationQuit()
+        {
+            // Detach the start event.
+            for (int i = 0; i < inspectorHolders.Length; i++)
+            {
+                inspectorHolders[i].onTextureChanged.RemoveListener((TextureObject t) => SetTextureByHolderIndex(t, Environment.IntToTextureMap(i), i));
+            }
+        }
+
+        /// <summary>
+        /// Sets the correct map of the WeaponManager to the a new texture, based
+        /// on holder system.
+        /// </summary>
+        /// <param name="texture">The new texture for this map.</param>
+        /// <param name="holderIndex">Used to get the correct map.</param>
+        private void SetTextureByHolderIndex(TextureObject texture, TextureMap map, int holderIndex)
+        {
+            // If the texture is null, remove the current map as well.
+            if (texture == null)
+            {
+                WeaponManager.Instance.CurrentWeapon.Remove(map);
+                return;
+            }
+
+            // Updates the weapon manager's texture for the current weapon.
+            WeaponManager.Instance.CurrentWeapon.Set(map, inspectorHolders[holderIndex].ContainedItem);
+        }
     }
 }

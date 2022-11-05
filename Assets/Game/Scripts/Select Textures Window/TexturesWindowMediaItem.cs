@@ -20,51 +20,17 @@ namespace SkinDesigner.SelectTexturesWindow
 
         [Space]
 
-        [SerializeField]
-        private new string name = "";
-
-        [SerializeField]
-        private Texture2D texture;
-
-        [SerializeField]
-        private string textureLink = "";
-
-        [SerializeField]
-        private bool itemIsNone = false;
+        [SerializeField] private ProjectWindowContentItem item;
 
         [Space()]
 
         [SerializeField]
         private TexturesWindowManager manager;
 
-        public string Name
+        public ProjectWindowContentItem Item
         {
-            get { return name; }
-            set { name = value; }
-        }
-
-        public Texture2D Texture
-        {
-            get { return texture; }
-            set { texture = value; }
-        }
-
-        public Sprite TextureInSprite
-        {
-            get { return texture.ToSprite(); }
-            set { texture = value.texture; }
-        }
-
-        public string TextureLink
-        {
-            get { return textureLink; }
-            set { textureLink = value; }
-        }
-        
-        public bool IsItemNone
-        {
-            get { return itemIsNone; }
-            set { itemIsNone = value; }
+            get { return item; }
+            set { item = value; }
         }
 
         public TexturesWindowMediaItem CreateItem(TexturesWindowManager manager)
@@ -74,35 +40,18 @@ namespace SkinDesigner.SelectTexturesWindow
             return this;
         }
 
-        public void SetItemData(string name, Texture2D texture, string textureLink)
+        public void SetItemData(ProjectWindowContentItem item)
         {
-            itemNameText.text = name;
-            itemTextureObject.texture = texture;
+            itemNameText.text = item.Name;
+            itemTextureObject.texture = item.Background.texture;
 
-            transform.name = name;
-
-            this.name = name;
-            this.texture = texture;
-            this.textureLink = textureLink;
-        }
-
-        public void SetItemData(string name, Sprite texture, string textureLink)
-        {
-            Texture2D t2d = texture.texture;
-
-            itemNameText.text = name;
-            itemTextureObject.texture = t2d;
-
-            transform.name = name;
-
-            this.name = name;
-            this.texture = t2d;
-            this.textureLink = textureLink;
+            this.item = item;
+            transform.name = item.Name;
         }
 
         public void OnPointerDown(PointerEventData data)
         {
-            if (data.clickCount > 0)
+            if (data.clickCount > 1)
             {
                 if (manager == null)
                     return;
