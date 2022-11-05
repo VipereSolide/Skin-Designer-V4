@@ -11,6 +11,7 @@ namespace Michsky.UI.ModernUIPack
     public class CustomDropdown : MonoBehaviour, IPointerExitHandler, IPointerEnterHandler, IPointerClickHandler
     {
         // Resources
+        public HighPriorityParent highPriority;
         public Animator dropdownAnimator;
         public GameObject triggerObject;
         public TextMeshProUGUI selectedText;
@@ -275,12 +276,22 @@ namespace Michsky.UI.ModernUIPack
             {
                 triggerObject.SetActive(false);
                 triggerButton.interactable = true;
+                
+                if (highPriority != null)
+                {
+                    highPriority.SetHighPriority(false);
+                }
             }
 
             else if (enableTrigger == true && isOn == true)
             {
                 triggerObject.SetActive(true);
                 triggerButton.interactable = false;
+
+                if (highPriority != null)
+                {
+                    highPriority.SetHighPriority(true);
+                }
             }
 
             if (enableTrigger == true && outOnPointerExit == true)
